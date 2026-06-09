@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl, GeolocateControl } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent } from 'react-map-gl/maplibre';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, CircleDot } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { type Point, type RouteResult } from '../../../services/routeService';
 
@@ -12,6 +12,20 @@ interface EnrutamientoMapProps {
   onMarkerDrag: (type: 'origin' | 'destination', point: Point) => void;
   selectedRoute: RouteResult | null;
 }
+
+// Componentes de Marcador Personalizados
+const OriginMarker = () => (
+  <div className="custom-marker origin-marker">
+    <CircleDot size={20} strokeWidth={2.5} />
+  </div>
+);
+
+const DestinationMarker = () => (
+  <div className="custom-marker destination-marker">
+    <MapPin size={20} strokeWidth={2.5} />
+  </div>
+);
+
 
 export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
   origin,
@@ -72,14 +86,11 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
           <Marker
             longitude={origin.lng}
             latitude={origin.lat}
-            anchor="bottom"
+            anchor="center"
             draggable
             onDragEnd={(e) => onMarkerDrag('origin', { lat: e.lngLat.lat, lng: e.lngLat.lng })}
           >
-            <div className="marker-origin">
-              <Navigation size={24} color="#10b981" fill="#10b981" style={{ transform: 'rotate(45deg)' }} />
-              <div className="marker-label">Origen</div>
-            </div>
+            <OriginMarker />
           </Marker>
         )}
 
@@ -88,38 +99,39 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
           <Marker
             longitude={destination.lng}
             latitude={destination.lat}
-            anchor="bottom"
+            anchor="center"
             draggable
             onDragEnd={(e) => onMarkerDrag('destination', { lat: e.lngLat.lat, lng: e.lngLat.lng })}
           >
-            <div className="marker-destination">
-              <MapPin size={32} color="#d81020" fill="#d81020" />
-              <div className="marker-label">Destino</div>
-            </div>
+            <DestinationMarker />
           </Marker>
         )}
       </Map>
 
       <style>{`
-        .marker-origin, .marker-destination {
+        .custom-marker {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background-color: white;
           display: flex;
-          flex-direction: column;
           align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.1);
           cursor: grab;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          transition: transform 0.1s ease-in-out;
         }
-        .marker-origin:active, .marker-destination:active {
+        .custom-marker:active {
           cursor: grabbing;
+          transform: scale(1.1);
         }
-        .marker-label {
-          background: white;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-size: 10px;
-          font-weight: 700;
-          margin-top: 2px;
-          border: 1px solid var(--color-border-default);
-          color: var(--color-text-heading);
+        .origin-marker {
+          border: 3px solid var(--color-success-500);
+          color: var(--color-success-500);
+        }
+        .destination-marker {
+          border: 3px solid var(--color-danger-500);
+          color: var(--color-danger-500);
         }
       `}</style>
     </div>

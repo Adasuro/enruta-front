@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Search, X, LocateFixed } from 'lucide-react';
+import { MapPin, Search, X, LocateFixed, Loader2 } from 'lucide-react';
 import { Button } from '../../../../components/atoms/Button';
 import './RoutingSearchCard.css';
 
@@ -75,7 +75,17 @@ export const RoutingSearchCard: React.FC<RoutingSearchCardProps> = ({
         disabled={!canSearch || isSearching}
         className="search-submit-btn"
       >
-        {isSearching ? 'Enrutando...' : 'Buscar Ruta'} <Search size={18} />
+        {isSearching ? (
+          <>
+            <Loader2 size={18} className="animate-spin" />
+            <span>Enrutando...</span>
+          </>
+        ) : (
+          <>
+            <span>Buscar Ruta</span>
+            <Search size={18} />
+          </>
+        )}
       </Button>
     </div>
   );
