@@ -1,0 +1,104 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Un poco más oscuro */
+  backdrop-filter: blur(8px); /* Más blur para enfoque */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-container {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden; /* Asegurar que el contenido no se salga de los bordes redondeados */
+}
+
+.modal-size-sm { width: 450px; }
+.modal-size-md { width: 650px; }
+.modal-size-lg { width: 850px; }
+.modal-size-xl { width: 1100px; }
+.modal-size-full { width: 98vw; height: 95vh; }
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #111827; /* Máximo contraste */
+  letter-spacing: -0.025em;
+}
+
+.modal-close-btn {
+  background: #f3f4f6;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+  background-color: #ffffff;
+}
+
+.modal-footer {
+  padding: 1.25rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb; /* Fondo sutil para diferenciar del body */
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScale {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Responsividad para móviles */
+@media (max-width: 640px) {
+  .modal-container {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0;
+  }
+}

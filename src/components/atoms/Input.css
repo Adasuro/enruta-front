@@ -1,0 +1,85 @@
+.atom-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.atom-input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-body);
+}
+
+.atom-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.atom-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-heading);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.atom-input--with-icon {
+  padding-right: 2.5rem; /* Space for the icon */
+}
+
+.atom-input-icon-btn {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.atom-input-icon-btn:hover {
+  color: var(--color-text-heading);
+  background-color: var(--color-overlay-hover);
+}
+
+.atom-input-icon-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+}
+
+.atom-input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.atom-input:hover {
+  border-color: var(--color-border-hover);
+}
+
+.atom-input:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.atom-input--error {
+  border-color: var(--color-danger-base);
+}
+
+.atom-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(216, 16, 32, 0.2);
+}
+
+.atom-input-error {
+  font-size: 0.75rem;
+  color: var(--color-danger-base);
+}

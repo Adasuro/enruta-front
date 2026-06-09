@@ -1,0 +1,159 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: var(--color-bg-surface);
+  border-right: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50; /* Flota sobre el main content al expandirse */
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar--collapsed {
+  width: 4rem; /* 64px */
+}
+
+.sidebar--expanded {
+  width: 16rem; /* 256px */
+  box-shadow: var(--shadow-lg);
+}
+
+.sidebar-header {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  height: 4.5rem; /* Slightly taller for the logo */
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar-logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar--collapsed .sidebar-logo-img {
+  /* When collapsed, we can show a smaller version or crop, but since we hover, 
+     let's keep it centered and let CSS handle the width overflow naturally or scale it down */
+  transform: scale(0.8);
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-text-heading);
+}
+
+.sidebar-business-selector {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.business-active {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.business-active:hover {
+  background-color: var(--color-overlay-hover);
+}
+
+.icon-business {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.business-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.business-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.business-type {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.icon-chevron {
+  color: var(--color-text-muted);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-footer {
+  padding: 1rem 0.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-body);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.nav-item:hover {
+  background-color: var(--color-overlay-hover);
+  color: var(--color-text-heading);
+}
+
+.nav-item.active {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.nav-item svg {
+  flex-shrink: 0;
+}
+
+.text-danger {
+  color: var(--color-danger-base);
+}
+.text-danger:hover {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
