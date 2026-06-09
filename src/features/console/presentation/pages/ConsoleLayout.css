@@ -15,3 +15,12 @@
   position: relative;
   /* El contenido se pinta aquí, el sidebar flota encima cuando se expande */
 }
+
+@media (max-width: 767px) {
+  .console-main {
+    margin-left: 0;
+    margin-bottom: 4rem; /* Espacio para la barra inferior */
+    height: calc(100vh - 4rem);
+  }
+}
+

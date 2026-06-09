@@ -7,56 +7,42 @@
   border-right: 1px solid var(--color-border-subtle);
   display: flex;
   flex-direction: column;
-  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 50; /* Flota sobre el main content al expandirse */
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
 
 .sidebar--collapsed {
-  width: 4rem; /* 64px */
+  width: 4.5rem;
 }
 
 .sidebar--expanded {
-  width: 16rem; /* 256px */
-  box-shadow: var(--shadow-lg);
+  width: 16rem;
+  box-shadow: var(--shadow-xl);
 }
 
+/* HEADER & LOGO */
 .sidebar-header {
   padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid var(--color-border-subtle);
-  height: 4.5rem; /* Slightly taller for the logo */
-}
-
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+  min-height: 4.5rem;
 }
 
 .sidebar-logo-img {
-  height: 40px;
+  height: 32px;
   width: auto;
-  object-fit: contain;
-  transition: all 0.2s ease-in-out;
+  transition: transform 0.25s;
 }
 
 .sidebar--collapsed .sidebar-logo-img {
-  /* When collapsed, we can show a smaller version or crop, but since we hover, 
-     let's keep it centered and let CSS handle the width overflow naturally or scale it down */
-  transform: scale(0.8);
+  transform: scale(1.1);
 }
 
-.brand-name {
-  font-weight: 700;
-  font-size: 1.125rem;
-  color: var(--color-text-heading);
-}
-
+/* BUSINESS SELECTOR */
 .sidebar-business-selector {
   padding: 0.75rem 0.5rem;
   border-bottom: 1px solid var(--color-border-subtle);
@@ -66,46 +52,40 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
+  padding: 0.625rem;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color 0.2s;
-  white-space: nowrap;
+  overflow: hidden;
 }
 
 .business-active:hover {
   background-color: var(--color-overlay-hover);
 }
 
-.icon-business {
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-
 .business-info {
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .business-name {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-text-heading);
-  text-overflow: ellipsis;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .business-type {
   font-size: 0.75rem;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
-.icon-chevron {
-  color: var(--color-text-muted);
-}
-
+/* NAV ITEMS */
 .sidebar-nav {
   flex: 1;
   padding: 1rem 0.5rem;
@@ -114,26 +94,22 @@
   gap: 0.25rem;
 }
 
-.sidebar-footer {
-  padding: 1rem 0.5rem;
-  border-top: 1px solid var(--color-border-subtle);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.5rem;
+  gap: 1rem;
+  padding: 0.75rem 0.875rem;
   border-radius: var(--radius-md);
   color: var(--color-text-body);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.875rem;
-  white-space: nowrap;
   transition: all 0.2s;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
 }
 
 .nav-item:hover {
@@ -148,12 +124,156 @@
 
 .nav-item svg {
   flex-shrink: 0;
+  min-width: 20px;
+}
+
+/* NAV TEXT VISIBILITY */
+.nav-text {
+  opacity: 1;
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar--collapsed .nav-text {
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+/* FOOTER & PROFILE */
+.sidebar-footer {
+  padding: 0.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background-color: var(--color-bg-surface);
+}
+
+.sidebar-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-app);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-btn {
+  font-family: inherit;
 }
 
 .text-danger {
   color: var(--color-danger-base);
 }
+
 .text-danger:hover {
   background-color: var(--color-danger-50);
-  color: var(--color-danger-600);
 }
+
+/* RESPONSIVE: BOTTOM BAR ON MOBILE */
+@media (max-width: 767px) {
+  .sidebar {
+    top: auto;
+    bottom: 0;
+    width: 100% !important;
+    height: 4.5rem;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--color-border-subtle);
+    padding: 0;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+  }
+
+  .sidebar-header, 
+  .sidebar-business-selector, 
+  .sidebar-user-profile {
+    display: none !important;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  .sidebar-footer {
+    flex-direction: row;
+    border-top: none;
+    padding: 0;
+    gap: 0;
+    width: auto;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.5rem 0.25rem;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    min-width: 60px;
+  }
+
+  .nav-item .nav-text {
+    display: block !important;
+    font-size: 10px;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+
+  .nav-item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-item.active {
+    background-color: transparent;
+    color: var(--color-primary-600);
+  }
+
+  .logout-btn {
+    display: none; /* Ocultar cerrar sesión del flujo principal en móvil, o mover a perfil */
+  }
+}
+
+

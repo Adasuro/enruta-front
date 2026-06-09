@@ -3,6 +3,7 @@ import { LoginPage } from './features/auth/presentation/pages/LoginPage';
 import { ConsoleLayout } from './features/console/presentation/pages/ConsoleLayout';
 import { RouteCreatorPage } from './features/console/presentation/pages/routes/RouteCreatorPage';
 import { B2BRoutesPage } from './features/console/presentation/pages/routes/B2BRoutesPage';
+import { ConsoleDashboardPage } from './features/console/presentation/pages/ConsoleDashboardPage';
 
 function App() {
   return (
@@ -15,16 +16,12 @@ function App() {
 
       {/* Rutas del Console (B2B & Admin) */}
       <Route path="/console" element={<ConsoleLayout />}>
-        {/* Dashboard por defecto */}
-        <Route index element={
-          <div style={{ padding: '2rem' }}>
-            <h2>Bienvenido a la Consola de EnRuta</h2>
-            <p>Selecciona una opción del menú lateral.</p>
-          </div>
-        } />
+        {/* Dashboard Dinámico */}
+        <Route index element={<ConsoleDashboardPage />} />
         
         {/* Creador de Rutas (Accesible para Admin y B2B Transportistas) */}
         <Route path="routes/editor" element={<RouteCreatorPage />} />
+
         
         {/* Gestión de Operaciones (Accesible para B2B Transportistas) */}
         <Route path="routes/fleet" element={<B2BRoutesPage />} />

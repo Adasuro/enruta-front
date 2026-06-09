@@ -1,0 +1,137 @@
+.routing-search-card {
+  background: white;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 350px;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.search-inputs-container {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+}
+
+.search-visual-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  width: 20px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.dot-origin {
+  background-color: var(--color-success-500);
+  border: 2px solid var(--color-success-100);
+}
+
+.dot-destination {
+  background-color: var(--color-danger-500);
+  border: 2px solid var(--color-danger-100);
+}
+
+.search-visual-line .line {
+  flex: 1;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--color-border-default),
+    var(--color-border-default) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  margin: 4px 0;
+}
+
+.search-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  transition: border-color 0.2s;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--color-primary-500);
+  background-color: white;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-body);
+  outline: none;
+  min-width: 0;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-right: 0.5rem;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.action-btn:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-text-heading);
+}
+
+.location-btn {
+  color: var(--color-primary-500);
+}
+
+.dest-icon {
+  color: var(--color-danger-400);
+  margin-right: 4px;
+}
+
+.search-submit-btn {
+  height: 2.75rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 767px) {
+  .routing-search-card {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+}
