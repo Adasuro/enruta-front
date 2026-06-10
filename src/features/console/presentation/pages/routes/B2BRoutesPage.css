@@ -1,0 +1,142 @@
+/* =========================================
+   B2BRoutesPage Responsive Layout
+   ========================================= */
+
+.b2b-routes-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 1rem;
+    color: var(--color-gray-500);
+}
+
+.b2b-routes-page {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.b2b-routes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+    gap: 1rem;
+}
+
+.b2b-routes-header-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.b2b-routes-header-badge span {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: var(--brand-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.b2b-routes-header h2 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: var(--color-gray-900);
+    letter-spacing: -0.02em;
+}
+
+.b2b-routes-header p {
+    color: var(--color-gray-500);
+    margin-top: 0.25rem;
+    font-size: 1rem;
+}
+
+.b2b-routes-grid {
+    display: grid;
+    /* Reducimos de 340px a 280px para que encaje bien en teléfonos pequeños */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.b2b-routes-empty-state {
+    grid-column: 1 / -1;
+    padding: 5rem 2rem;
+}
+
+.empty-state-card {
+    border-style: dashed;
+    background-color: transparent;
+}
+
+.empty-state-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 4rem;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: var(--color-gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-gray-400);
+}
+
+.empty-state-text {
+    max-width: 400px;
+}
+
+.empty-state-text h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-text p {
+    color: var(--color-gray-500);
+    line-height: 1.6;
+}
+
+/* =========================================
+   MOBILE-FIRST OVERRIDES
+   ========================================= */
+
+@media (max-width: 768px) {
+    .b2b-routes-page {
+        padding: 1.5rem 1rem; /* Menos padding lateral en móvil */
+        padding-bottom: 6rem; /* Espacio para el navbar inferior */
+    }
+
+    .b2b-routes-header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .b2b-routes-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .b2b-routes-new-btn {
+        width: 100%; /* Botón full-width en móvil */
+    }
+
+    .b2b-routes-empty-state {
+        padding: 2rem 0;
+    }
+
+    .empty-state-body {
+        padding: 2rem 1rem;
+    }
+}

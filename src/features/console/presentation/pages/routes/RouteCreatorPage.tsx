@@ -7,6 +7,7 @@ import { RouteCreatorMap } from '../../../../../components/ui/Map/RouteCreatorMa
 import { Button, Input, Card } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import './RouteCreatorPage.css';
 
 interface Point {
   lat: number;
@@ -28,6 +29,7 @@ export const RouteCreatorPage: React.FC = () => {
   const [densePoints, setDensePoints] = useState<Point[]>([]);
   const [stopsMeta, setStopsMeta] = useState<StopMetadata[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false); // For mobile bottom sheet
   
   const { success, error: notifyError } = useNotification();
   const { user } = useAuth();
@@ -126,6 +128,7 @@ export const RouteCreatorPage: React.FC = () => {
       setStopsMeta([]);
       setVisualCode('');
       setDisplayName('');
+      setIsFormOpen(false);
       
     } catch (error) {
       console.error("Error guardando la ruta:", error);
@@ -136,12 +139,20 @@ export const RouteCreatorPage: React.FC = () => {
   };
 
   return (
-    <div className="route-creator-container" style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
+    <div className="route-creator-page">
+      {/* Botón flotante solo visible en móvil para abrir el formulario */}
+      <button 
+        className="mobile-form-toggle"
+        onClick={() => setIsFormOpen(!isFormOpen)}
+      >
+        {isFormOpen ? 'Ver Mapa' : 'Configurar Ruta'}
+      </button>
+
       {/* Panel Izquierdo: Formulario */}
-      <div style={{ width: '400px', minWidth: '400px', backgroundColor: 'var(--color-white)', borderRight: '1px solid var(--color-gray-200)', display: 'flex', flexDirection: 'column', zIndex: 10, overflowY: 'auto', padding: '1.5rem', height: '100%' }}>
-        <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-primary)', letterSpacing: '-0.02em' }}>Trazar Nuevo Circuito</h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-gray-500)', marginTop: '0.25rem' }}>Define el recorrido circular marcando puntos clave en el mapa.</p>
+      <div className={`route-creator-sidebar ${isFormOpen ? 'open' : ''}`}>
+        <div className="route-creator-header">
+          <h2>Trazar Nuevo Circuito</h2>
+          <p>Define el recorrido circular marcando puntos clave en el mapa.</p>
         </div>
 
         <div className="form-group" style={{ flexShrink: 0 }}>
@@ -183,8 +194,8 @@ export const RouteCreatorPage: React.FC = () => {
 
         {/* Panel de Puntos de Control */}
         {points.length > 0 && (
-          <div style={{ marginTop: '2rem', flex: 1 }}>
-            <h4 style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Puntos de Control</h4>
+          <div className="route-creator-points">
+            <h4>Puntos de Control</h4>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
               {stopsMeta.map(meta => (
@@ -218,7 +229,7 @@ export const RouteCreatorPage: React.FC = () => {
           </div>
         )}
 
-        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'var(--color-gray-50)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-gray-100)' }}>
+        <div className="route-creator-summary">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
                 <span style={{ color: 'var(--color-gray-500)' }}>Puntos:</span>
@@ -238,7 +249,7 @@ export const RouteCreatorPage: React.FC = () => {
           )}
         </div>
 
-        <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-gray-100)' }}>
+        <div className="route-creator-footer">
           <Button 
             variant="primary" 
             fullWidth 
@@ -254,7 +265,7 @@ export const RouteCreatorPage: React.FC = () => {
       </div>
 
       {/* Panel Derecho: Mapa */}
-      <div style={{ flex: 1, position: 'relative', backgroundColor: 'var(--color-gray-100)' }}>
+      <div className="route-creator-map-wrapper">
         <RouteCreatorMap 
           points={points} 
           onPointsChange={setPoints}

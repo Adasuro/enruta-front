@@ -119,3 +119,25 @@
   background-color: var(--color-bg-surface-hover);
   color: var(--color-text-heading);
 }
+
+/* =========================================
+   RESPONSIVE TOASTS (Mobile)
+   ========================================= */
+@media (max-width: 768px) {
+  .ui-toast-container {
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 16px;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .ui-toast {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: var(--radius-lg);
+  }
+}

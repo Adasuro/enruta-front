@@ -8,7 +8,7 @@ export const ConsoleLayout: React.FC = () => {
       <Sidebar />
       <main className="console-main" style={{ flex: 1, paddingLeft: '4.5rem', transition: 'padding-left 0.25s ease', height: '100%', position: 'relative' }}>
         {/* Aquí renderizan las sub-rutas (dashboard, rutas, perfil, etc.) */}
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
             <Outlet />
         </div>
       </main>

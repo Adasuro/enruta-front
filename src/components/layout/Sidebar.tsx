@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Route, Building, Settings, LogOut, BusFront, Store } from 'lucide-react';
@@ -6,12 +6,20 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { user, logout } = useAuth();
   
   const activeBusiness = user?.businesses?.[0] || null;
   const isSuperAdmin = user?.role === 'super_admin';
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 767);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -35,9 +43,9 @@ export const Sidebar: React.FC = () => {
     <motion.aside 
       className="sidebar"
       initial={false}
-      animate={{ width: isExpanded ? '16rem' : '4.5rem' }}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
+      animate={{ width: isMobile ? '100%' : (isExpanded ? '16rem' : '4.5rem') }}
+      onMouseEnter={() => !isMobile && setIsExpanded(true)}
+      onMouseLeave={() => !isMobile && setIsExpanded(false)}
       style={{
         position: 'fixed',
         top: 0,
@@ -60,12 +68,13 @@ export const Sidebar: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
           {isSuperAdmin ? <Building size={20} /> : <BusFront size={20} />}
           <AnimatePresence>
-            {isExpanded && (
+            {(isExpanded || isMobile) && (
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}
+                className="hide-on-mobile"
               >
                 <span style={{ fontSize: '0.875rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {isSuperAdmin ? 'Admin Global' : activeBusiness?.name || 'Sin negocio'}
@@ -80,18 +89,26 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <nav style={{ flex: 1, padding: '1rem 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <NavItem to="/console" icon={<Route size={20} />} label="Buscar Rutas" isExpanded={isExpanded} />
+        <NavItem to="/console" icon={<Route size={20} />} label="Buscar" isExpanded={isExpanded || isMobile} />
 
-        <NavItem to="/console/routes/editor" icon={<Route size={20} />} label="Trazar Ruta" isExpanded={isExpanded} />
-        <NavItem to="/console/routes/fleet" icon={<BusFront size={20} />} label="Mi Flota" isExpanded={isExpanded} />
+        <NavItem to="/console/routes/editor" icon={<Route size={20} />} label="Trazar" isExpanded={isExpanded || isMobile} />
+        <NavItem to="/console/routes/fleet" icon={<BusFront size={20} />} label="Flota" isExpanded={isExpanded || isMobile} />
         
         {isSuperAdmin && (
-          <NavItem to="/console/companies" icon={<Store size={20} />} label="Empresas" isExpanded={isExpanded} />
+          <NavItem to="/console/companies" icon={<Store size={20} />} label="Empresas" isExpanded={isExpanded || isMobile} />
+        )}
+        
+        {/* En móvil, mostramos el logout en el nav principal para que sea accesible */}
+        {isMobile && (
+          <button onClick={handleLogout} className="sidebar-nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            <LogOut size={20} />
+            <span style={{ fontSize: '10px', whiteSpace: 'nowrap', display: 'block' }}>Salir</span>
+          </button>
         )}
       </nav>
 
-      <div style={{ padding: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <NavItem to="/console/settings" icon={<Settings size={20} />} label="Configuración" isExpanded={isExpanded} />
+      <div className="hide-on-mobile" style={{ padding: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <NavItem to="/console/settings" icon={<Settings size={20} />} label="Ajustes" isExpanded={isExpanded} />
         <button 
           onClick={handleLogout} 
           style={{ 
@@ -118,12 +135,43 @@ export const Sidebar: React.FC = () => {
         }
         .sidebar-nav-link:hover { color: white; background-color: rgba(255,255,255,0.1); }
         .sidebar-nav-link.active { color: white; background-color: rgba(255,255,255,0.15); font-weight: 700; }
+        
         @media (max-width: 767px) {
-            .sidebar { width: 100% !important; height: 4.5rem !important; top: auto !important; bottom: 0 !important; flex-direction: row !important; }
-            .sidebar > div:not(:nth-child(3)), nav > div { display: none !important; }
-            nav { flex-direction: row !important; justify-content: space-around !important; padding: 0 !important; }
-            .sidebar-nav-link { flex-direction: column !important; gap: 4px !important; padding: 0.5rem !important; flex: 1; }
-            .sidebar-nav-link span { display: block !important; font-size: 10px !important; }
+            .sidebar { 
+              width: 100% !important; 
+              height: 4.5rem !important; 
+              top: auto !important; 
+              bottom: 0 !important; 
+              flex-direction: row !important; 
+              padding-bottom: env(safe-area-inset-bottom);
+            }
+            .sidebar > div:not(:nth-child(3)), .hide-on-mobile { display: none !important; }
+            nav { 
+              flex-direction: row !important; 
+              justify-content: space-around !important; 
+              padding: 0 0.5rem !important; 
+              width: 100%;
+              align-items: center;
+            }
+            .sidebar-nav-link { 
+              flex-direction: column !important; 
+              gap: 4px !important; 
+              padding: 0.5rem 0.25rem !important; 
+              flex: 1; 
+              justify-content: center;
+              border-radius: var(--radius-md);
+            }
+            .sidebar-nav-link span { 
+              display: block !important; 
+              font-size: 10px !important; 
+              line-height: 1;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+            .sidebar-nav-link svg {
+              width: 20px;
+              height: 20px;
+            }
         }
       `}</style>
     </motion.aside>
