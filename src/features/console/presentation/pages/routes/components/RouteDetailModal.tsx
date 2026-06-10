@@ -1,8 +1,7 @@
 import React from 'react';
 import { Bus, Clock, Tag, MapPin, ChevronRight } from 'lucide-react';
-import { Modal, Button } from '../../../../../../components/ui';
+import { Modal, Button, Badge, Input } from '../../../../../../components/ui';
 import { RouteDetailMap } from '../../../../../../components/ui/Map';
-import './RouteDetailModal.css';
 
 interface RouteStop {
   id: string;
@@ -14,6 +13,7 @@ interface RouteStop {
 }
 
 interface RouteDetail {
+  id: string;
   visual_code: string;
   display_name?: string;
   status: string;
@@ -45,16 +45,17 @@ export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onCl
   })) || [];
 
   const stops = route.paths?.[0]?.stops || [];
+  const isActive = route.status === 'active';
 
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={`Centro de Control: Ruta ${route.visual_code}`}
+      title={`Gestión Operativa: Línea ${route.visual_code}`}
       size="xl"
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>Cerrar</Button>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" onClick={() => alert('Próximamente: Guardar cambios operativos')}>
             Guardar Cambios
           </Button>
@@ -73,36 +74,49 @@ export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onCl
               </div>
               <div className="info-row">
                 <span className="info-label">Estado Operativo:</span>
-                <span className={`status-pill ${route.status === 'active' ? 'active' : 'pending'}`}>
-                  {route.status === 'active' ? 'EN SERVICIO' : 'EN PAUSA'}
-                </span>
+                <Badge variant={isActive ? 'success' : 'neutral'}>
+                    {isActive ? 'EN SERVICIO' : 'EN PAUSA'}
+                </Badge>
+              </div>
+              <div className="info-row">
+                <span className="info-label">ID de Sistema:</span>
+                <span className="info-value" style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{route.id}</span>
               </div>
             </div>
           </section>
 
           <section className="detail-section">
-            <h4 className="detail-section-title">Finanzas y Frecuencia</h4>
-            <div className="control-group">
-              <label className="detail-field-label"><Tag size={16} /> Pasaje General (S/)</label>
-              <input type="number" step="0.10" defaultValue={currentFare} className="detail-input" />
-            </div>
-            <div className="control-group">
-              <label className="detail-field-label"><Clock size={16} /> Frecuencia Estimada (Min)</label>
-              <input type="number" defaultValue={route.frequency_min || 5} className="detail-input" />
+            <h4 className="detail-section-title">Parámetros de Servicio</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)' }}>
+                <Input 
+                  label="Tarifa General (S/)"
+                  type="number"
+                  defaultValue={currentFare}
+                  leftIcon={<Tag size={16} />}
+                />
+                <Input 
+                  label="Frecuencia (Min)"
+                  type="number"
+                  defaultValue={route.frequency_min || 5}
+                  leftIcon={<Clock size={16} />}
+                />
             </div>
           </section>
 
           <section className="detail-section">
-            <h4 className="detail-section-title">Flota Vinculada</h4>
+            <h4 className="detail-section-title">Flota Asignada</h4>
             <div className="fleet-list">
               <div className="fleet-item">
-                <Bus size={16} />
-                <span className="plate-text">W3V-456</span>
-                <span className="model-text">Toyota Hiace 2024</span>
-                <ChevronRight size={14} className="ml-auto text-muted" />
+                <Bus size={18} color="var(--brand-primary)" />
+                <div style={{ flex: 1 }}>
+                    <div className="plate-text">W3V-456</div>
+                    <div className="model-text">Toyota Hiace 2024</div>
+                </div>
+                <Badge variant="success" size="sm">ACTIVO</Badge>
+                <ChevronRight size={14} style={{ marginLeft: 'var(--spacing-2)', color: 'var(--color-gray-300)' }} />
               </div>
-              <Button variant="secondary" fullWidth style={{ marginTop: '10px' }}>
-                + Vincular Vehículo a esta Ruta
+              <Button variant="secondary" fullWidth style={{ marginTop: 'var(--spacing-2)' }}>
+                + Vincular Nuevo Vehículo
               </Button>
             </div>
           </section>
@@ -110,10 +124,14 @@ export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onCl
 
         {/* Lado Derecho: Mapa Real */}
         <div className="detail-map-panel">
-          <div className="detail-map-header">
-            <h4 className="detail-section-title">Verificación de Trazado</h4>
-            <p className="text-sm text-muted">Mapa interactivo con paraderos y terminales oficiales.</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+                <h4 className="detail-section-title">Vista del Recorrido</h4>
+                <p style={{ fontSize: '0.75rem', color: 'var(--color-gray-500)', marginTop: '2px' }}>Terminales y paraderos detectados por el motor espacial.</p>
+            </div>
+            {stops.length > 0 && <Badge variant="info" size="sm">{stops.length} Puntos</Badge>}
           </div>
+          
           <div className="detail-map-wrapper">
             <RouteDetailMap 
               points={pathPoints} 
@@ -124,10 +142,9 @@ export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onCl
           
           {stops.length > 0 && (
             <div className="detail-stops-mini-list">
-                <h5 className="text-xs uppercase font-bold text-muted mb-2">Terminales Detectados</h5>
                 {stops.filter((s: RouteStop) => s.is_terminal).map((s: RouteStop) => (
                     <div key={s.id} className="stop-entry-item">
-                        <MapPin size={12} color={route.color_primary} />
+                        <MapPin size={12} style={{ color: route.color_primary }} />
                         <span>{s.name}</span>
                     </div>
                 ))}

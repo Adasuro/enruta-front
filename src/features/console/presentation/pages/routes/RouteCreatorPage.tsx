@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, AlertCircle, MapPin } from 'lucide-react';
+import { Save, AlertCircle, MapPin, Palette } from 'lucide-react';
 import bearing from '@turf/bearing';
 import { point as turfPoint } from '@turf/helpers';
 import { RouteCreatorMap } from '../../../../../components/ui/Map/RouteCreatorMap';
-import { Button, Input } from '../../../../../components/ui';
+import { Button, Input, Card } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
-import './RouteCreatorPage.css';
 
 interface Point {
   lat: number;
@@ -31,7 +30,6 @@ export const RouteCreatorPage: React.FC = () => {
   
   const { success, error: notifyError } = useNotification();
 
-  // Cada vez que points cambia (se añade un punto), hacemos reverse geocoding
   useEffect(() => {
     const fetchStreetName = async (lat: number, lng: number, index: number) => {
       try {
@@ -43,7 +41,6 @@ export const RouteCreatorPage: React.FC = () => {
         if (index > 0) {
           const prev = points[index - 1];
           const angle = bearing(turfPoint([prev.lng, prev.lat]), turfPoint([lng, lat]));
-          // Convertir el angle a texto cardinal simple
           if (angle >= -45 && angle <= 45) headingText = 'Norte';
           else if (angle > 45 && angle < 135) headingText = 'Este';
           else if (angle >= 135 || angle <= -135) headingText = 'Sur';
@@ -52,38 +49,30 @@ export const RouteCreatorPage: React.FC = () => {
 
         setStopsMeta(prev => {
           const newMeta = [...prev];
-          // Solo lo añadimos si no existe
           if (!newMeta.find(m => m.index === index)) {
             newMeta.push({
               index,
               streetName: street,
-              isTerminal: index === 0, // Por defecto el primero es terminal
+              isTerminal: index === 0,
               headingText
             });
           }
-          return newMeta.sort((a, b) => a.index - b.index); // Mantener el orden
+          return newMeta.sort((a, b) => a.index - b.index);
         });
-
       } catch (err) {
         console.error("Nominatim error:", err);
       }
     };
 
-    // Solo buscamos si hay un punto nuevo que no está en la meta
     if (points.length > 0 && !stopsMeta.find(m => m.index === points.length - 1)) {
       const lastPoint = points[points.length - 1];
       fetchStreetName(lastPoint.lat, lastPoint.lng, points.length - 1);
     }
     
-    // Si eliminaron puntos, limpiamos la meta sobrante
     if (stopsMeta.length > points.length) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStopsMeta(prev => {
-        const filtered = prev.filter(m => m.index < points.length);
-        return filtered.length !== prev.length ? filtered : prev;
-      });
+      setStopsMeta(prev => prev.filter(m => m.index < points.length));
     }
-  }, [points]);
+  }, [points, stopsMeta]);
 
 
   const toggleTerminal = (index: number) => {
@@ -101,7 +90,6 @@ export const RouteCreatorPage: React.FC = () => {
     setIsSaving(true);
     
     try {
-      // Formatear payload
       const payload = {
         business_id: '019ea9e0-fae2-7074-a1e4-c09590cb52fd', 
         city_id: '620d31b6-504a-4c26-ad57-f2d5a9205d2a',
@@ -146,132 +134,125 @@ export const RouteCreatorPage: React.FC = () => {
   };
 
   return (
-    <div className="route-creator-layout">
-      {/* Panel Izquierdo: Formulario CRUD */}
-      <div className="route-form-panel" style={{ overflowY: 'auto' }}>
-        <div className="panel-header">
-          <h2>Trazar Nuevo Circuito</h2>
-          <p className="text-muted text-sm">Define el recorrido circular haciendo clics en el mapa. Selecciona los terminales clave.</p>
+    <div className="route-creator-container" style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
+      {/* Panel Izquierdo: Formulario */}
+      <div style={{ width: '400px', minWidth: '400px', backgroundColor: 'var(--color-white)', borderRight: '1px solid var(--color-gray-200)', display: 'flex', flexDirection: 'column', zIndex: 10, overflowY: 'auto', padding: '1.5rem', height: '100%' }}>
+        <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-primary)', letterSpacing: '-0.02em' }}>Trazar Nuevo Circuito</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-gray-500)', marginTop: '0.25rem' }}>Define el recorrido circular marcando puntos clave en el mapa.</p>
         </div>
 
-        <div className="form-group">
+        <div className="form-group" style={{ flexShrink: 0 }}>
           <Input 
-            label="Código / Letra Visual *" 
+            label="Código / Letra Visual" 
             placeholder="Ej. A, 15, W" 
             value={visualCode}
             onChange={(e) => setVisualCode(e.target.value)}
             maxLength={10}
+            required
           />
           <Input 
-            label="Nombre Descriptivo (Opcional)" 
+            label="Nombre Descriptivo" 
             placeholder="Ej. Terminal - Centro - Retorno" 
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
           
-          <div className="color-picker-group">
-            <label className="atom-input-label">Color del Circuito</label>
-            <div className="color-input-wrapper">
-              <input 
-                type="color" 
-                value={color} 
-                onChange={(e) => setColor(e.target.value)}
-                className="color-picker"
-              />
+          <div className="ui-input-wrapper">
+            <label className="ui-input-label">Color del Circuito</label>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: '48px', height: '48px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1.5px solid var(--color-gray-200)', flexShrink: 0 }}>
+                  <input 
+                    type="color" 
+                    value={color} 
+                    onChange={(e) => setColor(e.target.value)}
+                    style={{ position: 'absolute', inset: '-10px', width: '200%', height: '200%', cursor: 'pointer', border: 'none' }}
+                  />
+              </div>
               <Input 
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                style={{ fontFamily: 'monospace' }}
+                leftIcon={<Palette size={16} />}
+                style={{ fontFamily: 'monospace', textTransform: 'uppercase' }}
               />
             </div>
           </div>
         </div>
 
-        {/* Panel de Paraderos Inteligentes */}
+        {/* Panel de Puntos de Control */}
         {points.length > 0 && (
-          <div className="form-group" style={{ background: '#f8f9fa', padding: '10px', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#495057' }}>Puntos de Control & Terminales</h4>
+          <div style={{ marginTop: '2rem', flex: 1 }}>
+            <h4 style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Puntos de Control</h4>
             
-            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
               {stopsMeta.map(meta => (
-                <div key={meta.index} style={{ 
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '8px', background: 'white', marginBottom: '4px', borderRadius: '4px',
-                  borderLeft: meta.isTerminal ? `3px solid ${color}` : '3px solid transparent'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <MapPin size={16} color={meta.isTerminal ? color : '#adb5bd'} />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '12px', fontWeight: meta.isTerminal ? 'bold' : 'normal' }}>
-                        {meta.streetName}
-                      </span>
-                      {meta.headingText && (
-                        <span style={{ fontSize: '10px', color: '#6c757d' }}>Sentido: {meta.headingText}</span>
-                      )}
+                <Card key={meta.index} padding="sm" bordered={true} className={meta.isTerminal ? 'terminal-card' : ''} style={{ borderColor: meta.isTerminal ? color : 'var(--color-gray-100)', borderLeftWidth: '4px', borderLeftColor: meta.isTerminal ? color : 'var(--color-gray-200)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <MapPin size={16} style={{ color: meta.isTerminal ? color : 'var(--color-gray-300)' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {meta.streetName}
+                        </span>
+                        {meta.headingText && (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-400)' }}>Sentido {meta.headingText}</span>
+                        )}
+                      </div>
                     </div>
+                    
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', userSelect: 'none' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={meta.isTerminal} 
+                        onChange={() => toggleTerminal(meta.index)}
+                        style={{ accentColor: color, width: '16px', height: '16px' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: meta.isTerminal ? color : 'var(--color-gray-500)' }}>Term.</span>
+                    </label>
                   </div>
-                  
-                  <label style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={meta.isTerminal} 
-                      onChange={() => toggleTerminal(meta.index)}
-                    />
-                    Terminal
-                  </label>
-                </div>
+                </Card>
               ))}
             </div>
           </div>
         )}
 
-        <div className="form-summary">
-          <div className="summary-stat">
-            <span className="stat-label">Puntos de control:</span>
-            <span className={`stat-value ${points.length < 2 ? 'text-danger' : 'text-success'}`}>
-              {points.length}
-            </span>
-          </div>
-          <div className="summary-stat">
-            <span className="stat-label">Terminales:</span>
-            <span className={`stat-value ${terminalCount < 2 ? 'text-danger' : 'text-success'}`}>
-              {terminalCount} / 2 min
-            </span>
-          </div>
-          <div className="summary-stat">
-            <span className="stat-label">Nodos generados (OSRM):</span>
-            <span className="stat-value text-muted">
-              {densePoints.length}
-            </span>
-          </div>
-          {points.length < 2 && (
-            <div className="warning-box">
-              <AlertCircle size={14} /> Traza un circuito completo (mínimo 2 clics).
+        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'var(--color-gray-50)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-gray-100)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
+                <span style={{ color: 'var(--color-gray-500)' }}>Puntos:</span>
+                <span style={{ fontWeight: 700, color: points.length < 2 ? 'var(--color-danger)' : 'var(--color-success)' }}>{points.length}</span>
             </div>
-          )}
-          {points.length >= 2 && terminalCount < 2 && (
-            <div className="warning-box">
-              <AlertCircle size={14} /> Debes marcar al menos 2 puntos como "Terminal".
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
+                <span style={{ color: 'var(--color-gray-500)' }}>Terminales:</span>
+                <span style={{ fontWeight: 700, color: terminalCount < 2 ? 'var(--color-danger)' : 'var(--color-success)' }}>{terminalCount} / 2</span>
+            </div>
+          </div>
+          
+          {(points.length < 2 || terminalCount < 2) && (
+            <div style={{ display: 'flex', gap: '8px', marginTop: '0.75rem', color: 'var(--color-warning)', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.4 }}>
+              <AlertCircle size={14} style={{ flexShrink: 0 }} /> 
+              <span>{points.length < 2 ? 'Traza al menos 2 puntos.' : 'Marca al menos 2 terminales (inicio/fin).'}</span>
             </div>
           )}
         </div>
 
-        <div className="panel-footer">
+        <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-gray-100)' }}>
           <Button 
             variant="primary" 
             fullWidth 
+            size="lg"
             onClick={handleSaveRoute}
             isLoading={isSaving}
             disabled={!isFormValid}
-            leftIcon={<Save size={18} />}
+            leftIcon={<Save size={20} />}
           >
             Guardar Circuito
           </Button>
         </div>
       </div>
 
-      {/* Panel Derecho: Mapa Interactivo */}
-      <div className="route-map-panel">
+      {/* Panel Derecho: Mapa */}
+      <div style={{ flex: 1, position: 'relative', backgroundColor: 'var(--color-gray-100)' }}>
         <RouteCreatorMap 
           points={points} 
           onPointsChange={setPoints}

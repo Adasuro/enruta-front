@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Plus, Loader2, Bus } from 'lucide-react';
-import { Button } from '../../../../../components/ui';
+import { Plus, Loader2, Bus, LayoutGrid } from 'lucide-react';
+import { Button, Card, CardBody } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
 import { RouteCard } from './components/RouteCard';
 import { RouteDetailModal } from './components/RouteDetailModal';
 import api from '../../../../../config/api';
-import './B2BRoutesPage.css';
 
 interface FleetRoute {
   id: string;
@@ -17,6 +16,12 @@ interface FleetRoute {
   vehicles_count?: number;
   fare_rules?: Array<{
     fare_amount: string;
+  }>;
+  paths?: Array<{
+    geometry: {
+        coordinates: [number, number][];
+    };
+    stops: any[];
   }>;
 }
 
@@ -75,30 +80,35 @@ export const B2BRoutesPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="loading-state">
-        <Loader2 className="animate-spin" size={40} color="var(--color-primary-500)" />
-        <p>Sincronizando flotas...</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '1rem', color: 'var(--color-gray-500)' }}>
+        <Loader2 className="animate-spin" size={40} color="var(--brand-primary)" />
+        <p style={{ fontWeight: 600 }}>Sincronizando flotas...</p>
       </div>
     );
   }
 
   return (
-    <div className="b2b-routes-layout">
-      <div className="b2b-header">
+    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
         <div>
-          <h2>Panel de Operaciones</h2>
-          <p className="text-muted">Gestiona el rendimiento, tarifas y vehículos de tus rutas en tiempo real.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+            <LayoutGrid size={20} color="var(--brand-primary)" />
+            <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Gestión de Flota</span>
+          </div>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--color-gray-900)', letterSpacing: '-0.02em' }}>Panel de Operaciones</h2>
+          <p style={{ color: 'var(--color-gray-500)', marginTop: '0.25rem', fontSize: '1rem' }}>Gestiona el rendimiento, tarifas y vehículos en tiempo real.</p>
         </div>
         <Button 
           variant="primary" 
+          size="lg"
           onClick={() => info('Cargando catálogo maestro...', 'Nueva Concesión')}
-          leftIcon={<Plus size={18} />}
+          leftIcon={<Plus size={20} />}
         >
           Nueva Concesión
         </Button>
-      </div>
+      </header>
 
-      <div className="routes-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
         {routes.map((route) => (
           <RouteCard 
             key={route.id} 
@@ -109,12 +119,19 @@ export const B2BRoutesPage: React.FC = () => {
         ))}
 
         {routes.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-icon-wrapper">
-               <Bus size={48} />
-            </div>
-            <h3>Tu flota está vacía</h3>
-            <p>Aún no tienes rutas operativas vinculadas a tu empresa. Empieza trazando una o solicita una concesión.</p>
+          <div style={{ gridColumn: '1 / -1', padding: '5rem 2rem' }}>
+              <Card bordered padding="none" style={{ borderStyle: 'dashed', backgroundColor: 'transparent' }}>
+                <CardBody style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem', padding: '4rem' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'var(--color-gray-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-gray-400)' }}>
+                        <Bus size={40} />
+                    </div>
+                    <div style={{ maxWidth: '400px' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-gray-900)', marginBottom: '0.5rem' }}>Tu flota está vacía</h3>
+                        <p style={{ color: 'var(--color-gray-500)', lineHeight: 1.6 }}>Aún no tienes rutas operativas vinculadas a tu empresa. Empieza trazando una o solicita una concesión.</p>
+                    </div>
+                    <Button variant="outline" onClick={() => window.location.href='/console/routes/editor'}>Ir al Creador de Rutas</Button>
+                </CardBody>
+              </Card>
           </div>
         )}
       </div>
@@ -122,7 +139,7 @@ export const B2BRoutesPage: React.FC = () => {
       <RouteDetailModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        route={selectedRoute} 
+        route={selectedRoute as any} 
       />
     </div>
   );

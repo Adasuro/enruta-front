@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/presentation/pages/LoginPage';
-import { ConsoleLayout } from './features/console/presentation/pages/ConsoleLayout';
+import { ConsoleLayout } from './components/layout/ConsoleLayout';
 import { RouteCreatorPage } from './features/console/presentation/pages/routes/RouteCreatorPage';
 import { B2BRoutesPage } from './features/console/presentation/pages/routes/B2BRoutesPage';
 import { ConsoleDashboardPage } from './features/console/presentation/pages/ConsoleDashboardPage';

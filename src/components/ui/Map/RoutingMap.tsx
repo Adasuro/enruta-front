@@ -66,6 +66,7 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
         mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
         onClick={handleMapClick}
         cursor="crosshair"
+        style={{ width: '100%', height: '100%' }}
       >
         <NavigationControl position="bottom-right" />
         <GeolocateControl position="bottom-right" />

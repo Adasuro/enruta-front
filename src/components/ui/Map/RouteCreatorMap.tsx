@@ -157,6 +157,7 @@ export const RouteCreatorMap: React.FC<RouteCreatorMapProps> = ({
         onClick={handleMapClick}
         interactiveLayerIds={['route-line']}
         cursor="crosshair"
+        style={{ width: '100%', height: '100%' }}
       >
         <NavigationControl position="bottom-right" />
         <GeolocateControl position="bottom-right" />
