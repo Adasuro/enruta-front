@@ -49,18 +49,13 @@ export const RouteCreatorMap: React.FC<RouteCreatorMapProps> = ({
   useEffect(() => {
     // Caso: No hay puntos
     if (points.length === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setRouteSegments(prev => prev.length > 0 ? [] : prev);
-      onRouteCalculated?.([]);
+      if (routeSegments.length > 0) setRouteSegments([]);
       return;
     }
 
     // Caso: Solo un punto (inicio)
     if (points.length === 1) {
-      if (routeSegments.length > 0) {
-        setRouteSegments([]);
-      }
-      onRouteCalculated?.([points[0]]);
+      if (routeSegments.length > 0) setRouteSegments([]);
       return;
     }
 
@@ -70,20 +65,24 @@ export const RouteCreatorMap: React.FC<RouteCreatorMapProps> = ({
       const end = points[points.length - 1];
       
       fetchRouteSegment(start, end).then(newSegment => {
-        setRouteSegments(prev => {
-          const updated = [...prev, newSegment];
-          onRouteCalculated?.(updated.flat());
-          return updated;
-        });
+        setRouteSegments(prev => [...prev, newSegment]);
       });
     } 
     // Si eliminamos puntos (Undo)
     else if (points.length - 1 < routeSegments.length) {
-      const updated = routeSegments.slice(0, points.length - 1);
-      setRouteSegments(updated);
-      onRouteCalculated?.(updated.length > 0 ? updated.flat() : [points[0]]);
+      setRouteSegments(routeSegments.slice(0, points.length - 1));
     }
-  }, [points, fetchRouteSegment, onRouteCalculated, routeSegments.length]);
+  }, [points, fetchRouteSegment, routeSegments.length]);
+
+  useEffect(() => {
+    if (points.length === 0) {
+      onRouteCalculated?.([]);
+    } else if (points.length === 1) {
+      onRouteCalculated?.([points[0]]);
+    } else {
+      onRouteCalculated?.(routeSegments.flat());
+    }
+  }, [routeSegments, points, onRouteCalculated]);
 
   const handleMapClick = (event: MapLayerMouseEvent) => {
     const { lng, lat } = event.lngLat;

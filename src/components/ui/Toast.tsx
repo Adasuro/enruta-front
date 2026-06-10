@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 import type { Notification } from '../../types/notification';
+import './Toast.css';
 
 interface ToastProps {
   notification: Notification;

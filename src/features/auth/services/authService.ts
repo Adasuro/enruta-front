@@ -5,6 +5,7 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  city_id?: string;
   businesses?: Array<{
     id: string;
     name: string;

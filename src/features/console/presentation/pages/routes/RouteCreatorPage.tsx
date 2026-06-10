@@ -6,6 +6,7 @@ import { point as turfPoint } from '@turf/helpers';
 import { RouteCreatorMap } from '../../../../../components/ui/Map/RouteCreatorMap';
 import { Button, Input, Card } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 interface Point {
   lat: number;
@@ -29,6 +30,7 @@ export const RouteCreatorPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   
   const { success, error: notifyError } = useNotification();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchStreetName = async (lat: number, lng: number, index: number) => {
@@ -91,8 +93,8 @@ export const RouteCreatorPage: React.FC = () => {
     
     try {
       const payload = {
-        business_id: '019ea9e0-fae2-7074-a1e4-c09590cb52fd', 
-        city_id: '620d31b6-504a-4c26-ad57-f2d5a9205d2a',
+        business_id: user?.businesses?.[0]?.id || '', 
+        city_id: user?.city_id || '',
         visual_code: visualCode,
         display_name: displayName,
         color_primary: color,

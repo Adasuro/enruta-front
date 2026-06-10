@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardBody } from '../../../../components/ui';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../../../contexts/AuthContext';
 import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
@@ -9,6 +11,8 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,9 +21,8 @@ export const LoginPage: React.FC = () => {
 
     try {
       const data = await authService.login(email, password);
-      localStorage.setItem('enruta_token', data.token);
-      localStorage.setItem('enruta_user', JSON.stringify(data.user));
-      window.location.href = '/console';
+      login(data.token, data.user);
+      navigate('/console');
     } catch (err) {
       const errorObj = err as { response?: { data?: { errors?: { email?: string[] }, message?: string } } };
       if (errorObj.response?.data?.errors?.email) {

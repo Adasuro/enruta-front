@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-query-devtools": "^5.101.0",
     "@turf/bearing": "^7.3.5",
     "@turf/helpers": "^7.3.5",
     "@types/mapbox-gl": "^3.4.1",

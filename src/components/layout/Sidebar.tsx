@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Route, Building, Settings, LogOut, BusFront, Store } from 'lucide-react';
-import { authService, type User } from '../../features/auth/services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [user] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem('enruta_user');
-    return storedUser ? (JSON.parse(storedUser) as User) : null;
-  });
+  const { user, logout } = useAuth();
   
   const activeBusiness = user?.businesses?.[0] || null;
   const isSuperAdmin = user?.role === 'super_admin';
@@ -19,7 +16,7 @@ export const Sidebar: React.FC = () => {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
-      await authService.logout();
+      await logout();
     } catch (error) {
       console.error("Error during logout", error);
     } finally {
@@ -46,7 +43,7 @@ export const Sidebar: React.FC = () => {
         top: 0,
         left: 0,
         height: '100vh',
-        backgroundColor: 'var(--brand-primary)',
+        backgroundColor: 'var(--color-primary-500)',
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
@@ -84,8 +81,6 @@ export const Sidebar: React.FC = () => {
 
       <nav style={{ flex: 1, padding: '1rem 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         <NavItem to="/console" icon={<Route size={20} />} label="Buscar Rutas" isExpanded={isExpanded} />
-
-        {/* Ahora estas rutas son visibles para todos los usuarios por solicitud del cliente */}
 
         <NavItem to="/console/routes/editor" icon={<Route size={20} />} label="Trazar Ruta" isExpanded={isExpanded} />
         <NavItem to="/console/routes/fleet" icon={<BusFront size={20} />} label="Mi Flota" isExpanded={isExpanded} />
