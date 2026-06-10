@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Search, X, LocateFixed, Loader2 } from 'lucide-react';
-import { Button } from '../../../../components/atoms/Button';
+import { Button } from '../../../../components/ui';
 import './RoutingSearchCard.css';
 
 interface RoutingSearchCardProps {

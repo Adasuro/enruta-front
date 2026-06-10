@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { type User } from '../../../../features/auth/services/authService';
 import { useEnrutamiento } from '../../hooks/useEnrutamiento';
-import { EnrutamientoMap } from '../components/maps/EnrutamientoMap';
+import { RoutingMap } from '../../../../components/ui/Map';
+import { RouteResultCard } from '../../../../components/domain';
 import { EnrutandoOverlay } from '../components/EnrutandoOverlay';
 import { RoutingSearchCard } from '../components/RoutingSearchCard';
-import { Bus, ArrowRight, Frown, Info, X, ChevronUp } from 'lucide-react';
+import { Frown, Info, X } from 'lucide-react';
 import { type RouteResult } from '../../services/routeService';
 
 type SheetState = 'closed' | 'peek' | 'full';
@@ -14,20 +15,17 @@ export const ConsoleDashboardPage: React.FC = () => {
   const { 
     origin, setOrigin, originName, setOriginName,
     destination, setDestination, destinationName, setDestinationName,
-    isSearching, searchResults, setSearchResults, radiusMsg, handleSearch, fetchAddress,
+    isSearching, searchResults, setSearchResults, radiusMsg, handleSearch: originalHandleSearch, fetchAddress,
     useCurrentLocation, clearLocation
   } = useEnrutamiento();
 
   const [selectedRoute, setSelectedRoute] = useState<RouteResult | null>(null);
   const [sheetState, setSheetState] = useState<SheetState>('closed');
 
-  useEffect(() => {
-    if (searchResults) {
-      setSheetState('peek');
-    } else {
-      setSheetState('closed');
-    }
-  }, [searchResults]);
+  const handleSearch = async () => {
+    await originalHandleSearch();
+    setSheetState('peek');
+  };
 
   const handleMapClick = async (p: {lat: number, lng: number}) => {
     if (!origin) {
@@ -88,7 +86,7 @@ export const ConsoleDashboardPage: React.FC = () => {
 
         <div className="main-content">
           <div className="map-wrapper">
-            <EnrutamientoMap 
+            <RoutingMap 
               origin={origin} 
               destination={destination} 
               onMapClick={handleMapClick}
@@ -117,28 +115,12 @@ export const ConsoleDashboardPage: React.FC = () => {
               <div className="results-body">
                 {searchResults && searchResults.results.length > 0 ? (
                   searchResults.results.map((route) => (
-                    <div 
+                    <RouteResultCard 
                       key={route.id}
+                      route={route}
+                      isSelected={selectedRoute?.id === route.id}
                       onClick={() => setSelectedRoute(route)}
-                      className={`route-card ${selectedRoute?.id === route.id ? 'selected' : ''}`}
-                      style={{ '--route-color': route.color_primary } as React.CSSProperties}
-                    >
-                      <div className="route-card-header">
-                        <div className="route-visual-code" style={{ background: route.color_primary, boxShadow: `0 4px 12px ${route.color_primary}55` }}>
-                          {route.visual_code}
-                        </div>
-                        <div className="route-card-info">
-                          <div className="route-card-name">{route.display_name || 'Ruta sin nombre'}</div>
-                          <div className="route-card-fare">
-                            Pasaje: <span>{route.fare.currency} {route.fare.amount.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="route-card-footer">
-                         <span><Bus size={18} /> Ver recorrido</span>
-                         <ArrowRight size={18} />
-                      </div>
-                    </div>
+                    />
                   ))
                 ) : (
                   <div className="no-results-container">

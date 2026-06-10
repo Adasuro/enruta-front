@@ -1,0 +1,109 @@
+/* 
+  EnRuta - Global Design System 
+  Centralized & Motion-first
+*/
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-family-base);
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+  line-height: 1.5;
+}
+
+/* --- UI COMPONENTS CORE STYLES --- */
+
+/* Button */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.ui-btn:active { transform: scale(0.98); }
+.ui-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ui-btn--primary { 
+    background-color: var(--brand-primary); 
+    color: var(--color-white);
+    box-shadow: var(--shadow-sm);
+}
+.ui-btn--primary:hover { background-color: var(--brand-secondary); box-shadow: var(--shadow-md); }
+
+.ui-btn--secondary { background-color: var(--color-gray-200); color: var(--color-gray-800); }
+.ui-btn--secondary:hover { background-color: var(--color-gray-300); }
+
+.ui-btn--outline { background-color: transparent; border-color: var(--color-gray-300); color: var(--color-gray-700); }
+.ui-btn--outline:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+.ui-btn--sm { padding: var(--spacing-1) var(--spacing-3); font-size: var(--font-size-xs); }
+.ui-btn--md { padding: var(--spacing-2) var(--spacing-5); font-size: var(--font-size-sm); min-height: 48px; }
+.ui-btn--lg { padding: var(--spacing-3) var(--spacing-8); font-size: var(--font-size-base); min-height: 56px; }
+.ui-btn--full { width: 100%; }
+
+/* Input Utility */
+.ui-input-wrapper { display: flex; flex-direction: column; gap: var(--spacing-1-5); width: 100%; }
+.ui-input-label { font-size: var(--font-size-sm); font-weight: 700; color: var(--color-gray-700); letter-spacing: 0.01em; }
+
+/* Card */
+.ui-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-gray-200);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Modal */
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(6, 26, 61, 0.7); /* Usando brand-secondary con opacidad */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.ui-modal-container {
+  background-color: var(--color-white);
+  border-radius: var(--radius-xl);
+  width: 90%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Forms */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+/* Utils */
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(--spacing-4); }
+.text-danger { color: var(--color-danger); }
+.text-sm { font-size: var(--font-size-sm); }
+.animate-fade-in { animation: fadeIn 0.3s ease-in; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

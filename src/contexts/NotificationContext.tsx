@@ -1,16 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { ToastContainer } from '../components/molecules/Toast/ToastContainer';
-
-export type NotificationType = 'success' | 'error' | 'warning' | 'info';
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  message: string;
-  title?: string;
-  duration?: number;
-}
+import { ToastContainer } from '../components/ui';
+import type { Notification } from '../types/notification';
 
 interface NotificationContextType {
   notify: (notification: Omit<Notification, 'id'>) => void;
@@ -21,7 +12,7 @@ interface NotificationContextType {
   removeNotification: (id: string) => void;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+export const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -32,7 +23,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const notify = useCallback((notification: Omit<Notification, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setNotifications((prev) => [...prev, { ...notification, id }]);
+    setNotifications((prev) => [...prev, { ...notification, id } as Notification]);
 
     if (notification.duration !== 0) {
       setTimeout(() => {
@@ -41,10 +32,17 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
   }, [removeNotification]);
 
-  const success = useCallback((message: string, title?: string) => notify({ type: 'success', message, title }), [notify]);
-  const error = useCallback((message: string, title?: string) => notify({ type: 'error', message, title }), [notify]);
-  const warning = useCallback((message: string, title?: string) => notify({ type: 'warning', message, title }), [notify]);
-  const info = useCallback((message: string, title?: string) => notify({ type: 'info', message, title }), [notify]);
+  const success = useCallback((message: string, title?: string) => 
+    notify({ type: 'success', message, title }), [notify]);
+  
+  const error = useCallback((message: string, title?: string) => 
+    notify({ type: 'error', message, title }), [notify]);
+  
+  const warning = useCallback((message: string, title?: string) => 
+    notify({ type: 'warning', message, title }), [notify]);
+  
+  const info = useCallback((message: string, title?: string) => 
+    notify({ type: 'info', message, title }), [notify]);
 
   return (
     <NotificationContext.Provider value={{ notify, success, error, warning, info, removeNotification }}>
@@ -52,12 +50,4 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       <ToastContainer notifications={notifications} onClose={removeNotification} />
     </NotificationContext.Provider>
   );
-};
-
-export const useNotification = () => {
-  const context = useContext(NotificationContext);
-  if (context === undefined) {
-    throw new Error('useNotification must be used within a NotificationProvider');
-  }
-  return context;
 };

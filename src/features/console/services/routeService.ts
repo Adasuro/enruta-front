@@ -18,7 +18,10 @@ export interface RouteResult {
   display_name: string | null;
   color_primary: string;
   color_secondary: string | null;
-  path_geojson: any;
+  path_geojson: {
+    type: 'LineString';
+    coordinates: [number, number][];
+  };
   boarding_point: {
     type: string;
     coordinates: [number, number];

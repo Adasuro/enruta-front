@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { NotificationProvider } from './contexts/NotificationContext.tsx';
+
+/* Estilos Maestros - CFA Standard */
+import './styles/tokens.css';
+import './styles/globals.css';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(

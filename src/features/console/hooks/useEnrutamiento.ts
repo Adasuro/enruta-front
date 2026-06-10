@@ -22,36 +22,36 @@ export const useEnrutamiento = () => {
   };
 
   // Initial Geolocation
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setOrigin(p);
-          const name = await fetchAddress(p.lat, p.lng);
-          setOriginName(name);
-        },
-        (err) => console.warn("Geolocation error:", err),
-        { enableHighAccuracy: true }
-      );
-    }
-  }, []);
+    useEffect(() => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setOrigin(p);
+            const name = await fetchAddress(p.lat, p.lng);
+            setOriginName(name);
+          },
+          () => console.warn("Geolocation error"),
+          { enableHighAccuracy: true }
+        );
+      }
+    }, []);
 
-  const useCurrentLocation = useCallback(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setOrigin(p);
-          setOriginName('Mi ubicación actual');
-          const name = await fetchAddress(p.lat, p.lng);
-          setOriginName(name);
-        },
-        (err) => console.warn("Geolocation error:", err),
-        { enableHighAccuracy: true }
-      );
-    }
-  }, []);
+    const useCurrentLocation = useCallback(() => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setOrigin(p);
+            setOriginName('Mi ubicación actual');
+            const name = await fetchAddress(p.lat, p.lng);
+            setOriginName(name);
+          },
+          () => console.warn("Geolocation error"),
+          { enableHighAccuracy: true }
+        );
+      }
+    }, []);
 
   const clearLocation = useCallback((type: 'origin' | 'destination') => {
     if (type === 'origin') {
@@ -82,8 +82,8 @@ export const useEnrutamiento = () => {
           setIsSearching(false);
           return;
         }
-      } catch (err) {
-        console.error("Search error:", err);
+      } catch {
+        console.error("Search error");
       }
       // Pequeño delay para que el usuario vea el escaneo de radios
       await new Promise(resolve => setTimeout(resolve, 400));
@@ -113,5 +113,8 @@ export const useEnrutamiento = () => {
     clearLocation
   };
 };
+
+
+
 
 

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Plus, Loader2, Bus } from 'lucide-react';
-import { Button } from '../../../../../components/atoms/Button';
-import { useNotification } from '../../../../../contexts/NotificationContext';
+import { Button } from '../../../../../components/ui';
+import { useNotification } from '../../../../../hooks/useNotification';
 import { RouteCard } from './components/RouteCard';
 import { RouteDetailModal } from './components/RouteDetailModal';
 import api from '../../../../../config/api';
@@ -27,11 +27,7 @@ export const B2BRoutesPage: React.FC = () => {
   const [selectedRoute, setSelectedRoute] = useState<FleetRoute | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchRoutes();
-  }, []);
-
-  const fetchRoutes = async () => {
+  const fetchRoutes = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await api.get('/routes');
@@ -41,7 +37,16 @@ export const B2BRoutesPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [error]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      if (isMounted) await fetchRoutes();
+    };
+    load();
+    return () => { isMounted = false; };
+  }, [fetchRoutes]);
 
   const handleStatusToggle = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
@@ -55,7 +60,7 @@ export const B2BRoutesPage: React.FC = () => {
         } else {
             warning('Ruta desactivada. Se ha ocultado de los resultados de búsqueda.', 'Ruta Fuera de Servicio');
         }
-    } catch (err) {
+    } catch {
         error('No se pudo cambiar el estado de la ruta en el servidor.', 'Error de Actualización');
     }
   };
@@ -84,8 +89,12 @@ export const B2BRoutesPage: React.FC = () => {
           <h2>Panel de Operaciones</h2>
           <p className="text-muted">Gestiona el rendimiento, tarifas y vehículos de tus rutas en tiempo real.</p>
         </div>
-        <Button variant="primary" onClick={() => info('Cargando catálogo maestro...', 'Nueva Concesión')}>
-          <Plus size={18} /> Nueva Concesión
+        <Button 
+          variant="primary" 
+          onClick={() => info('Cargando catálogo maestro...', 'Nueva Concesión')}
+          leftIcon={<Plus size={18} />}
+        >
+          Nueva Concesión
         </Button>
       </div>
 

@@ -1,14 +1,37 @@
 import React from 'react';
 import { Bus, Clock, Tag, MapPin, ChevronRight } from 'lucide-react';
-import { Modal } from '../../../../../../components/atoms/Modal';
-import { Button } from '../../../../../../components/atoms/Button';
-import { RouteDetailMap } from '../../../components/maps/RouteDetailMap';
+import { Modal, Button } from '../../../../../../components/ui';
+import { RouteDetailMap } from '../../../../../../components/ui/Map';
 import './RouteDetailModal.css';
+
+interface RouteStop {
+  id: string;
+  name: string;
+  is_terminal: boolean;
+  location: {
+    coordinates: [number, number];
+  };
+}
+
+interface RouteDetail {
+  visual_code: string;
+  display_name?: string;
+  status: string;
+  color_primary: string;
+  frequency_min?: number;
+  fare_rules?: Array<{ fare_amount: string }>;
+  paths?: Array<{
+    geometry: {
+      coordinates: Array<[number, number]>;
+    };
+    stops: RouteStop[];
+  }>;
+}
 
 interface RouteDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  route: any;
+  route: RouteDetail | null;
 }
 
 export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onClose, route }) => {
@@ -16,7 +39,7 @@ export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onCl
 
   const currentFare = route.fare_rules?.[0]?.fare_amount || "2.00";
   
-  const pathPoints = route.paths?.[0]?.geometry?.coordinates?.map((c: any) => ({
+  const pathPoints = route.paths?.[0]?.geometry?.coordinates?.map((c: [number, number]) => ({
     lng: c[0],
     lat: c[1]
   })) || [];
@@ -102,7 +125,7 @@ export const RouteDetailModal: React.FC<RouteDetailModalProps> = ({ isOpen, onCl
           {stops.length > 0 && (
             <div className="detail-stops-mini-list">
                 <h5 className="text-xs uppercase font-bold text-muted mb-2">Terminales Detectados</h5>
-                {stops.filter((s: any) => s.is_terminal).map((s: any) => (
+                {stops.filter((s: RouteStop) => s.is_terminal).map((s: RouteStop) => (
                     <div key={s.id} className="stop-entry-item">
                         <MapPin size={12} color={route.color_primary} />
                         <span>{s.name}</span>

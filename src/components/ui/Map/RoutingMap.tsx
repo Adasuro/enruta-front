@@ -3,31 +3,36 @@ import Map, { Marker, Source, Layer, NavigationControl, GeolocateControl } from 
 import type { MapLayerMouseEvent } from 'react-map-gl/maplibre';
 import { MapPin, CircleDot } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { type Point, type RouteResult } from '../../../services/routeService';
 
-interface EnrutamientoMapProps {
+interface Point {
+  lat: number;
+  lng: number;
+}
+
+interface RoutingMapProps {
   origin: Point | null;
   destination: Point | null;
   onMapClick: (point: Point) => void;
   onMarkerDrag: (type: 'origin' | 'destination', point: Point) => void;
-  selectedRoute: RouteResult | null;
+  selectedRoute: {
+    color_primary: string;
+    path_geojson: any;
+  } | null;
 }
 
-// Componentes de Marcador Personalizados
 const OriginMarker = () => (
-  <div className="custom-marker origin-marker">
+  <div className="ui-map-marker ui-map-marker--origin">
     <CircleDot size={20} strokeWidth={2.5} />
   </div>
 );
 
 const DestinationMarker = () => (
-  <div className="custom-marker destination-marker">
+  <div className="ui-map-marker ui-map-marker--destination">
     <MapPin size={20} strokeWidth={2.5} />
   </div>
 );
 
-
-export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
+export const RoutingMap: React.FC<RoutingMapProps> = ({
   origin,
   destination,
   onMapClick,
@@ -46,7 +51,7 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
   };
 
   const geojsonRoute = useMemo(() => {
-    if (!selectedRoute) return null;
+    if (!selectedRoute?.path_geojson) return null;
     return {
       type: 'Feature' as const,
       properties: {},
@@ -55,7 +60,7 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
   }, [selectedRoute]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '400px' }}>
+    <div className="ui-routing-map-container">
       <Map
         initialViewState={initialViewState}
         mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
@@ -65,7 +70,6 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
         <NavigationControl position="bottom-right" />
         <GeolocateControl position="bottom-right" />
 
-        {/* Render Selected Route Path */}
         {geojsonRoute && (
           <Source id="selected-route-source" type="geojson" data={geojsonRoute}>
             <Layer
@@ -73,7 +77,7 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
               type="line"
               layout={{ 'line-join': 'round', 'line-cap': 'round' }}
               paint={{
-                'line-color': selectedRoute?.color_primary || '#0b62a0',
+                'line-color': selectedRoute?.color_primary || 'var(--brand-primary)',
                 'line-width': 6,
                 'line-opacity': 0.8
               }}
@@ -81,7 +85,6 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
           </Source>
         )}
 
-        {/* Origin Marker */}
         {origin && (
           <Marker
             longitude={origin.lng}
@@ -94,7 +97,6 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
           </Marker>
         )}
 
-        {/* Destination Marker */}
         {destination && (
           <Marker
             longitude={destination.lng}
@@ -107,33 +109,6 @@ export const EnrutamientoMap: React.FC<EnrutamientoMapProps> = ({
           </Marker>
         )}
       </Map>
-
-      <style>{`
-        .custom-marker {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background-color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.1);
-          cursor: grab;
-          transition: transform 0.1s ease-in-out;
-        }
-        .custom-marker:active {
-          cursor: grabbing;
-          transform: scale(1.1);
-        }
-        .origin-marker {
-          border: 3px solid var(--color-success-500);
-          color: var(--color-success-500);
-        }
-        .destination-marker {
-          border: 3px solid var(--color-danger-500);
-          color: var(--color-danger-500);
-        }
-      `}</style>
     </div>
   );
 };

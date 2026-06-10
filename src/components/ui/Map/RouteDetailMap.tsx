@@ -7,9 +7,18 @@ interface Point {
   lng: number;
 }
 
+interface Stop {
+  id?: string;
+  name: string;
+  is_terminal: boolean;
+  location: {
+    coordinates: [number, number]; // [lng, lat]
+  };
+}
+
 interface RouteDetailMapProps {
   points: Point[];
-  stops?: any[];
+  stops?: Stop[];
   routeColor: string;
 }
 
@@ -48,7 +57,7 @@ export const RouteDetailMap: React.FC<RouteDetailMapProps> = ({
   }), [points]);
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '300px', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: '300px', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
       <Map
         initialViewState={initialViewState}
         mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
@@ -72,7 +81,7 @@ export const RouteDetailMap: React.FC<RouteDetailMapProps> = ({
         )}
 
         {/* Marcadores de Paraderos/Terminales */}
-        {stops.map((stop: any, index: number) => (
+        {stops.map((stop, index) => (
           <Marker 
             key={stop.id || index}
             longitude={stop.location.coordinates[0]} 

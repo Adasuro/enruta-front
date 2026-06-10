@@ -3,10 +3,9 @@ import axios from 'axios';
 import { Save, AlertCircle, MapPin } from 'lucide-react';
 import bearing from '@turf/bearing';
 import { point as turfPoint } from '@turf/helpers';
-import { RouteCreatorMap } from '../../components/maps/RouteCreatorMap';
-import { Input } from '../../../../../components/atoms/Input';
-import { Button } from '../../../../../components/atoms/Button';
-import { useNotification } from '../../../../../contexts/NotificationContext';
+import { RouteCreatorMap } from '../../../../../components/ui/Map/RouteCreatorMap';
+import { Button, Input } from '../../../../../components/ui';
+import { useNotification } from '../../../../../hooks/useNotification';
 import './RouteCreatorPage.css';
 
 interface Point {
@@ -78,7 +77,11 @@ export const RouteCreatorPage: React.FC = () => {
     
     // Si eliminaron puntos, limpiamos la meta sobrante
     if (stopsMeta.length > points.length) {
-      setStopsMeta(prev => prev.filter(m => m.index < points.length));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStopsMeta(prev => {
+        const filtered = prev.filter(m => m.index < points.length);
+        return filtered.length !== prev.length ? filtered : prev;
+      });
     }
   }, [points]);
 
@@ -258,9 +261,11 @@ export const RouteCreatorPage: React.FC = () => {
             variant="primary" 
             fullWidth 
             onClick={handleSaveRoute}
-            disabled={isSaving || !isFormValid}
+            isLoading={isSaving}
+            disabled={!isFormValid}
+            leftIcon={<Save size={18} />}
           >
-            <Save size={18} /> {isSaving ? 'Guardando Circuito...' : 'Guardar Circuito'}
+            Guardar Circuito
           </Button>
         </div>
       </div>
