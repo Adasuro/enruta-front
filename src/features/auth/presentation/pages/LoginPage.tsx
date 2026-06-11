@@ -4,33 +4,42 @@ import { LogIn, Mail, Lock } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardBody } from '../../../../components/ui';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../../../contexts/AuthContext';
+import { useNotification } from '../../../../hooks/useNotification';
 import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [inputError, setInputError] = useState<string | null>(null);
+  
   const { login } = useAuth();
+  const { error, success } = useNotification();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setInputError(null);
 
     try {
       const data = await authService.login(email, password);
       login(data.token, data.user);
-      navigate('/console');
+      success(`Bienvenido de nuevo, ${data.user.name}`);
+      
+      if (data.user.role === 'standard_user') {
+        navigate('/');
+      } else {
+        navigate('/console');
+      }
     } catch (err) {
       const errorObj = err as { response?: { data?: { errors?: { email?: string[] }, message?: string } } };
       if (errorObj.response?.data?.errors?.email) {
-        setError(errorObj.response.data.errors.email[0]);
+        setInputError(errorObj.response.data.errors.email[0]);
       } else if (errorObj.response?.data?.message) {
-        setError(errorObj.response.data.message);
+        error(errorObj.response.data.message, "Error al iniciar sesión");
       } else {
-        setError('Error al intentar iniciar sesión. Revisa tu conexión.');
+        error('Error al intentar iniciar sesión. Revisa tu conexión.', "Error de red");
       }
     } finally {
       setIsLoading(false);
@@ -57,7 +66,7 @@ export const LoginPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               leftIcon={<Mail size={18} />}
-              error={error && error.toLowerCase().includes('correo') ? error : undefined}
+              error={inputError || undefined}
               required
             />
             <Input 
@@ -69,12 +78,6 @@ export const LoginPage: React.FC = () => {
               leftIcon={<Lock size={18} />}
               required
             />
-
-            {error && !error.toLowerCase().includes('correo') && (
-              <div className="login-error-alert animate-fade-in">
-                {error}
-              </div>
-            )}
 
             <Button 
               type="submit" 
@@ -90,7 +93,7 @@ export const LoginPage: React.FC = () => {
         </CardBody>
 
         <div className="login-footer">
-          ¿No tienes una cuenta? <a href="#" className="login-link">Solicitar acceso empresarial</a>
+          ¿No tienes una cuenta? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }} className="login-link">Crear una cuenta</a>
         </div>
       </Card>
     </div>

@@ -6,6 +6,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  getUser: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -47,8 +48,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const getUser = async () => {
+    try {
+      const freshUser = await authService.getUser();
+      setUser(freshUser);
+      localStorage.setItem('enruta_user', JSON.stringify(freshUser));
+    } catch (error) {
+      console.error("Failed to fetch fresh user data", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, getUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

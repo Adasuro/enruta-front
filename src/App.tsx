@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/presentation/pages/LoginPage';
+import { RegisterPage } from './features/auth/presentation/pages/RegisterPage';
 import { ConsoleLayout } from './components/layout/ConsoleLayout';
 import { RouteCreatorPage } from './features/console/presentation/pages/routes/RouteCreatorPage';
 import { B2BRoutesPage } from './features/console/presentation/pages/routes/B2BRoutesPage';
@@ -14,6 +15,7 @@ function App() {
       
       {/* Rutas de autenticación */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       {/* Protegido: Accesible por admin y operadores */}
       <Route element={<ProtectedRoute allowedRoles={['super_admin', 'console_user']} />}>

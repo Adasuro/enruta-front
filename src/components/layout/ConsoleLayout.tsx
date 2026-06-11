@@ -1,8 +1,20 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { useAuth } from '../../contexts/AuthContext';
+import { OnboardingPage } from '../../features/console/presentation/pages/OnboardingPage';
 
 export const ConsoleLayout: React.FC = () => {
+  const { user } = useAuth();
+  
+  const isSuperAdmin = user?.role === 'super_admin';
+  const hasBusiness = user?.businesses && user.businesses.length > 0;
+
+  // Si no es super admin y no tiene negocios, mostrar el Onboarding en lugar del layout
+  if (!isSuperAdmin && !hasBusiness) {
+    return <OnboardingPage />;
+  }
+
   return (
     <div className="console-layout" style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <Sidebar />

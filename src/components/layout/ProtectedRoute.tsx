@@ -18,7 +18,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/console" replace />; // Redirigir al inicio del console o a una página de 403
+    // Si no tiene permisos, lo enviamos al login temporalmente o a una página de acceso denegado
+    // TODO: Crear una vista de 403 (Acceso Denegado) o vista B2C
+    return <Navigate to="/login" replace />; 
   }
 
   return <Outlet />;
