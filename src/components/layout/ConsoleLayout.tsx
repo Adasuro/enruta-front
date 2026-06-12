@@ -27,7 +27,11 @@ export const ConsoleLayout: React.FC = () => {
       
       <style>{`
         @media (max-width: 767px) {
-            .console-main { padding-left: 0 !important; padding-bottom: 4.5rem; }
+            .console-main { 
+              padding-left: 0 !important; 
+              padding-bottom: 4.5rem; 
+              padding-top: 4rem; 
+            }
         }
       `}</style>
     </div>

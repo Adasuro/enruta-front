@@ -4,8 +4,9 @@
 
 .ui-toast-container {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   right: 24px;
+  bottom: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -25,13 +26,13 @@
   box-shadow: var(--shadow-lg);
   border-left: 4px solid var(--color-border-default);
   pointer-events: auto;
-  animation: slideInUp 0.3s ease-out forwards;
+  animation: slideInDown 0.3s ease-out forwards;
 }
 
-@keyframes slideInUp {
+@keyframes slideInDown {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -125,12 +126,12 @@
    ========================================= */
 @media (max-width: 768px) {
   .ui-toast-container {
-    bottom: 0;
-    right: 0;
-    left: 0;
-    padding: 16px;
-    padding-bottom: env(safe-area-inset-bottom, 16px);
-    width: 100%;
+    top: 16px;
+    bottom: auto;
+    right: 16px;
+    left: 16px;
+    padding: 0;
+    width: auto;
     align-items: stretch;
   }
 

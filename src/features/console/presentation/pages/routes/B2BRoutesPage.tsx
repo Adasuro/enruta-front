@@ -1,163 +1,139 @@
 import React, { useState } from 'react';
 import { Plus, Loader2, Bus, LayoutGrid } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button, Card, CardBody } from '../../../../../components/ui';
+import { Button, Card } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
-import { RouteCard } from './components/RouteCard';
-import { RouteDetailModal } from './components/RouteDetailModal';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { vehicleService } from '../../../services/vehicleService';
+import type { Vehicle } from '../../../services/vehicleService';
 import api from '../../../../../config/api';
-import './B2BRoutesPage.css';
-
-interface FleetRoute {
-  id: string;
-  visual_code: string;
-  display_name: string;
-  color_primary: string;
-  status: string;
-  frequency_min?: number;
-  vehicles_count?: number;
-  fare_rules?: Array<{
-    fare_amount: string;
-  }>;
-  paths?: Array<{
-    geometry: {
-        coordinates: [number, number][];
-    };
-    stops: any[];
-  }>;
-}
+import { VehicleModal } from './components/VehicleModal';
+import { VehicleCard } from './components/VehicleCard';
+import './B2BRoutesPage.css'; 
 
 export const B2BRoutesPage: React.FC = () => {
-  const { info, success, error, warning } = useNotification();
-  const [selectedRoute, setSelectedRoute] = useState<FleetRoute | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { success, error, warning } = useNotification();
   const queryClient = useQueryClient();
+  const { activeBusinessId } = useAuth();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const { data: routes = [], isLoading, isError } = useQuery<FleetRoute[]>({
-    queryKey: ['routes'],
+  const { data: vehicles = [], isLoading } = useQuery<Vehicle[]>({
+    queryKey: ['vehicles', activeBusinessId],
+    queryFn: async () => {
+      if (!activeBusinessId) return [];
+      return vehicleService.getVehicles(activeBusinessId);
+    },
+    enabled: !!activeBusinessId,
+    staleTime: 1000 * 60 * 5, 
+  });
+
+  const { data: availableRoutes = [] } = useQuery({
+    queryKey: ['routes', activeBusinessId],
     queryFn: async () => {
       const response = await api.get('/routes');
       return response.data.data;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    enabled: !!activeBusinessId,
   });
 
-  const toggleStatusMutation = useMutation({
-    mutationFn: async ({ id, newStatus }: { id: string, newStatus: string }) => {
-      await api.patch(`/routes/${id}/status`, { status: newStatus });
-      return { id, newStatus };
+  const updateRouteMutation = useMutation({
+    mutationFn: async ({ id, routeId }: { id: string, routeId: string | null }) => {
+      return vehicleService.updateRoute(id, routeId);
     },
-    onMutate: async ({ id, newStatus }) => {
-      // Optimistic update
-      await queryClient.cancelQueries({ queryKey: ['routes'] });
-      const previousRoutes = queryClient.getQueryData<FleetRoute[]>(['routes']);
-      
-      queryClient.setQueryData<FleetRoute[]>(['routes'], old => 
-        old?.map(route => route.id === id ? { ...route, status: newStatus } : route)
-      );
-
-      return { previousRoutes };
+    onSuccess: () => {
+      success('Vehículo reasignado correctamente.', 'Despacho Exitoso');
+      queryClient.invalidateQueries({ queryKey: ['vehicles', activeBusinessId] });
     },
-    onError: (_err, _variables, context) => {
-      // Rollback on error
-      if (context?.previousRoutes) {
-        queryClient.setQueryData(['routes'], context.previousRoutes);
-      }
-      error('No se pudo cambiar el estado de la ruta en el servidor.', 'Error de Actualización');
-    },
-    onSuccess: (data) => {
-      if (data.newStatus === 'active') {
-        success('Ruta activada. Ahora es visible para los turistas.', 'Ruta en Línea');
-      } else {
-        warning('Ruta desactivada. Se ha ocultado de los resultados de búsqueda.', 'Ruta Fuera de Servicio');
-      }
-      // Re-fetch to ensure sync
-      queryClient.invalidateQueries({ queryKey: ['routes'] });
+    onError: () => {
+      error('No se pudo reasignar el vehículo.', 'Error');
     }
   });
 
-  const handleStatusToggle = (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    toggleStatusMutation.mutate({ id, newStatus });
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: Vehicle['status'] }) => {
+      return vehicleService.updateStatus(id, status);
+    },
+    onSuccess: (updatedVehicle) => {
+      if (updatedVehicle.status === 'maintenance') warning('Vehículo enviado a taller.', 'Mantenimiento');
+      else if (updatedVehicle.status === 'active') success('Vehículo operativo.', 'En Línea');
+      queryClient.invalidateQueries({ queryKey: ['vehicles', activeBusinessId] });
+    },
+    onError: () => {
+      error('No se pudo cambiar el estado del vehículo.', 'Error');
+    }
+  });
+
+  const handleRouteChange = (vehicleId: string, newRouteId: string) => {
+    updateRouteMutation.mutate({ id: vehicleId, routeId: newRouteId || null });
   };
 
-  const handleManage = (id: string) => {
-    const route = routes.find(r => r.id === id);
-    if (route) {
-        setSelectedRoute(route);
-        setIsModalOpen(true);
-    }
+  const handleStatusToggle = (vehicleId: string, currentStatus: Vehicle['status']) => {
+    updateStatusMutation.mutate({ id: vehicleId, status: currentStatus === 'active' ? 'maintenance' : 'active' });
   };
 
   if (isLoading) {
     return (
-      <div className="b2b-routes-loading">
+      <div className="b2b-routes-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 'var(--spacing-4)' }}>
         <Loader2 className="animate-spin" size={40} color="var(--brand-primary)" />
-        <p style={{ fontWeight: 600 }}>Sincronizando flotas...</p>
+        <p style={{ fontWeight: 600 }}>Cargando inventario de flota...</p>
       </div>
     );
   }
 
-  if (isError) {
-    // Handling error gracefully instead of just throwing toast
-    error('No pudimos sincronizar tus rutas operativas.', 'Error de Conexión');
-  }
-
   return (
-    <div className="b2b-routes-page">
-      <header className="b2b-routes-header">
+    <div className="b2b-routes-page" style={{ padding: 'var(--spacing-6)', maxWidth: '1200px', margin: '0 auto' }}>
+      <header className="b2b-routes-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-8)' }}>
         <div>
-          <div className="b2b-routes-header-badge">
-            <LayoutGrid size={20} color="var(--brand-primary)" />
+          <div className="b2b-routes-header-badge" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', color: 'var(--brand-primary)', fontWeight: 700, fontSize: '0.875rem', marginBottom: 'var(--spacing-2)' }}>
+            <LayoutGrid size={20} />
             <span>Gestión de Flota</span>
           </div>
-          <h2>Panel de Operaciones</h2>
-          <p>Gestiona el rendimiento, tarifas y vehículos en tiempo real.</p>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 var(--spacing-2) 0', color: 'var(--color-text-heading)' }}>Inventario de Vehículos</h2>
+          <p style={{ color: 'var(--color-text-body)', margin: 0 }}>Despacha vehículos a rutas y controla su estado operativo.</p>
         </div>
         <Button 
           variant="primary" 
           size="lg"
-          onClick={() => info('Cargando catálogo maestro...', 'Nueva Concesión')}
+          onClick={() => setIsAddModalOpen(true)}
           leftIcon={<Plus size={20} />}
-          className="b2b-routes-new-btn"
         >
-          Nueva Concesión
+          Añadir Vehículo
         </Button>
       </header>
 
-      <div className="b2b-routes-grid">
-        {routes.map((route) => (
-          <RouteCard 
-            key={route.id} 
-            route={route} 
-            onManage={handleManage}
-            onStatusToggle={handleStatusToggle}
-          />
-        ))}
-
-        {routes.length === 0 && (
-          <div className="b2b-routes-empty-state">
-              <Card bordered padding="none" className="empty-state-card">
-                <CardBody className="empty-state-body">
-                    <div className="empty-state-icon">
-                        <Bus size={40} />
-                    </div>
-                    <div className="empty-state-text">
-                        <h3>Tu flota está vacía</h3>
-                        <p>Aún no tienes rutas operativas vinculadas a tu empresa. Empieza trazando una o solicita una concesión.</p>
-                    </div>
-                    <Button variant="outline" onClick={() => window.location.href='/console/routes/editor'}>Ir al Creador de Rutas</Button>
-                </CardBody>
-              </Card>
+      {vehicles.length === 0 ? (
+        <Card bordered padding="lg" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-bg-surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--spacing-6) auto' }}>
+            <Bus size={32} color="var(--color-text-muted)" />
           </div>
-        )}
-      </div>
-
-      <RouteDetailModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        route={selectedRoute as any} 
-      />
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 'var(--spacing-2)' }}>Tu flota está vacía</h3>
+          <p style={{ color: 'var(--color-text-body)', maxWidth: '400px', margin: '0 auto var(--spacing-6) auto' }}>Registra las placas de tus unidades para empezar a asignarlas a tus rutas operativas.</p>
+          <Button variant="outline" onClick={() => setIsAddModalOpen(true)}>Registrar primer vehículo</Button>
+        </Card>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+          {vehicles.map((vehicle) => (
+            <VehicleCard 
+              key={vehicle.id} 
+              vehicle={vehicle} 
+              availableRoutes={availableRoutes}
+              isUpdatingRoute={updateRouteMutation.isPending && updateRouteMutation.variables?.id === vehicle.id}
+              isUpdatingStatus={updateStatusMutation.isPending && updateStatusMutation.variables?.id === vehicle.id}
+              onRouteAssign={handleRouteChange}
+              onStatusToggle={handleStatusToggle}
+            />
+          ))}
+        </div>
+      )}
+      
+      {activeBusinessId && (
+        <VehicleModal 
+          isOpen={isAddModalOpen} 
+          onClose={() => setIsAddModalOpen(false)} 
+          businessId={activeBusinessId} 
+        />
+      )}
     </div>
   );
 };
+

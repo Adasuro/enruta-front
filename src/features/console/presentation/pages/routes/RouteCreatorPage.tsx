@@ -7,6 +7,7 @@ import { RouteCreatorMap } from '../../../../../components/ui/Map/RouteCreatorMa
 import { Button, Input, Card } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import api from '../../../../../config/api';
 import './RouteCreatorPage.css';
 
 interface Point {
@@ -32,7 +33,7 @@ export const RouteCreatorPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false); // For mobile bottom sheet
   
   const { success, error: notifyError } = useNotification();
-  const { user } = useAuth();
+  const { user, activeBusinessId } = useAuth();
 
   useEffect(() => {
     const fetchStreetName = async (lat: number, lng: number, index: number) => {
@@ -93,10 +94,12 @@ export const RouteCreatorPage: React.FC = () => {
     if (!isFormValid) return;
     setIsSaving(true);
     
+    const activeBusiness = user?.businesses?.find(b => b.id === activeBusinessId) || user?.businesses?.[0];
+    
     try {
       const payload = {
-        business_id: user?.businesses?.[0]?.id || '', 
-        city_id: user?.city_id || '',
+        business_id: activeBusiness?.id || '', 
+        city_id: activeBusiness?.city_id || user?.city_id || '',
         visual_code: visualCode,
         display_name: displayName,
         color_primary: color,
@@ -115,12 +118,7 @@ export const RouteCreatorPage: React.FC = () => {
         }))
       };
 
-      await axios.post('http://localhost:8000/api/routes', payload, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('enruta_token')}`,
-          'Accept': 'application/json'
-        }
-      });
+      await api.post('/routes', payload);
 
       success('El circuito ha sido procesado y guardado en la base de datos espacial.', '¡Ruta Guardada!');
       setPoints([]);
@@ -130,9 +128,18 @@ export const RouteCreatorPage: React.FC = () => {
       setDisplayName('');
       setIsFormOpen(false);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error guardando la ruta:", error);
-      notifyError('Revisa tu conexión o que los IDs sean válidos.', 'Error al guardar la ruta');
+      
+      let errorMsg = 'Revisa tu conexión o que los IDs sean válidos.';
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+         const firstErrorKey = Object.keys(error.response.data.errors)[0];
+         errorMsg = error.response.data.errors[firstErrorKey][0];
+      } else if (error.response?.data?.message) {
+         errorMsg = error.response.data.message;
+      }
+      
+      notifyError(errorMsg, 'Error al guardar la ruta');
     } finally {
       setIsSaving(false);
     }

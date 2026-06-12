@@ -10,6 +10,7 @@ export interface User {
     id: string;
     name: string;
     type: string;
+    city_id: string;
   }>;
 }
 

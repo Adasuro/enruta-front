@@ -5,6 +5,7 @@ import { ConsoleLayout } from './components/layout/ConsoleLayout';
 import { RouteCreatorPage } from './features/console/presentation/pages/routes/RouteCreatorPage';
 import { B2BRoutesPage } from './features/console/presentation/pages/routes/B2BRoutesPage';
 import { ConsoleDashboardPage } from './features/console/presentation/pages/ConsoleDashboardPage';
+import { OnboardingPage } from './features/console/presentation/pages/OnboardingPage';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 
 function App() {
@@ -22,8 +23,13 @@ function App() {
         <Route path="/console" element={<ConsoleLayout />}>
           {/* Dashboard Dinámico / Buscar Rutas */}
           <Route index element={<ConsoleDashboardPage />} />
+          <Route path="search" element={<ConsoleDashboardPage forceSearchMode={true} />} />
           
-          {/* Creador de Rutas */}
+          {/* Crear Nuevo Negocio */}
+          <Route path="new-business" element={<OnboardingPage />} />
+
+          {/* Gestión de Rutas */}
+          <Route path="routes/list" element={<div style={{ padding: '2rem' }}><h1>Mis Rutas</h1><p>Próximamente: Listado de circuitos creados.</p></div>} />
           <Route path="routes/editor" element={<RouteCreatorPage />} />
 
           {/* Gestión de Operaciones (Flota) */}
