@@ -5,7 +5,6 @@ import { Button, Input, Card, CardHeader, CardBody } from '../../../../component
 import { authService } from '../../services/authService';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNotification } from '../../../../hooks/useNotification';
-import './LoginPage.css';
 
 export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -87,58 +86,42 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <Card className="login-card" style={{ maxWidth: '500px' }} elevation="lg" padding="none">
-        <CardHeader className="login-header">
-          <div className="login-logo">
-            <img src="/logo.webp" alt="EnRuta Logo" className="login-logo-img" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-800 p-4 max-sm:p-0 max-sm:bg-white">
+      <Card className="w-full max-w-[500px] bg-white max-sm:max-w-full max-sm:h-screen max-sm:rounded-none max-sm:shadow-none max-sm:flex max-sm:flex-col max-sm:justify-center" elevation="lg" padding="none">
+        <CardHeader className="text-center pt-10 px-6 pb-6 border-b-0 mb-0 max-sm:pt-0">
+          <div className="mb-6 flex justify-center">
+            <img src="/logo.webp" alt="EnRuta Logo" className="h-[60px] w-auto drop-shadow-sm" />
           </div>
-          <h1 className="login-title">Crear Cuenta</h1>
-          <p className="login-subtitle">Únete a EnRuta</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Crear Cuenta</h1>
+          <p className="text-gray-500 text-sm font-medium">Únete a EnRuta</p>
         </CardHeader>
         
-        <CardBody className="login-body">
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-gray-700)' }}>
+        <CardBody className="pt-2 px-8 pb-8">
+          <div className="mb-8">
+            <label className="block mb-2 font-semibold text-sm text-gray-700">
               Tipo de Cuenta
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid grid-cols-2 gap-4">
               <div 
                 onClick={() => setAccountType('b2c')}
-                style={{
-                  padding: '1rem',
-                  border: `2px solid ${accountType === 'b2c' ? 'var(--brand-primary)' : 'var(--color-gray-200)'}`,
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  backgroundColor: accountType === 'b2c' ? 'var(--color-primary-50)' : 'white',
-                  transition: 'all 0.2s'
-                }}
+                className={`p-4 border-2 rounded-lg cursor-pointer text-center transition-all duration-200 ${accountType === 'b2c' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white'}`}
               >
-                <UserIcon size={24} style={{ margin: '0 auto 0.5rem', color: accountType === 'b2c' ? 'var(--brand-primary)' : 'var(--color-gray-500)' }} />
-                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: accountType === 'b2c' ? 'var(--brand-primary)' : 'var(--color-gray-700)' }}>Usuario Regular</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-gray-500)', marginTop: '0.25rem' }}>Explorar rutas</div>
+                <UserIcon size={24} className={`mx-auto mb-2 ${accountType === 'b2c' ? 'text-primary-500' : 'text-gray-500'}`} />
+                <div className={`font-semibold text-sm ${accountType === 'b2c' ? 'text-primary-500' : 'text-gray-700'}`}>Usuario Regular</div>
+                <div className="text-xs text-gray-500 mt-1">Explorar rutas</div>
               </div>
               <div 
                 onClick={() => setAccountType('b2b')}
-                style={{
-                  padding: '1rem',
-                  border: `2px solid ${accountType === 'b2b' ? 'var(--brand-primary)' : 'var(--color-gray-200)'}`,
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  backgroundColor: accountType === 'b2b' ? 'var(--color-primary-50)' : 'white',
-                  transition: 'all 0.2s'
-                }}
+                className={`p-4 border-2 rounded-lg cursor-pointer text-center transition-all duration-200 ${accountType === 'b2b' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white'}`}
               >
-                <Building2 size={24} style={{ margin: '0 auto 0.5rem', color: accountType === 'b2b' ? 'var(--brand-primary)' : 'var(--color-gray-500)' }} />
-                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: accountType === 'b2b' ? 'var(--brand-primary)' : 'var(--color-gray-700)' }}>Empresa / Negocio</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-gray-500)', marginTop: '0.25rem' }}>Gestionar operaciones</div>
+                <Building2 size={24} className={`mx-auto mb-2 ${accountType === 'b2b' ? 'text-primary-500' : 'text-gray-500'}`} />
+                <div className={`font-semibold text-sm ${accountType === 'b2b' ? 'text-primary-500' : 'text-gray-700'}`}>Empresa / Negocio</div>
+                <div className="text-xs text-gray-500 mt-1">Gestionar operaciones</div>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Input 
               label="Nombre Completo" 
               type="text" 
@@ -159,7 +142,7 @@ export const RegisterPage: React.FC = () => {
               required
             />
             
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <Input 
                 label="Contraseña" 
                 type={showPassword ? "text" : "password"} 
@@ -172,24 +155,24 @@ export const RegisterPage: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '1rem', top: '2.1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-gray-400)' }}
+                className="absolute right-4 top-[2.1rem] bg-transparent border-none cursor-pointer text-gray-400"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
             {password.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.75rem', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
-                <div style={{ color: isLengthValid ? 'var(--color-green-600)' : 'var(--color-gray-500)' }}>
+              <div className="grid grid-cols-2 gap-2 text-xs -mt-2 mb-2">
+                <div className={isLengthValid ? 'text-success-600' : 'text-gray-500'}>
                   {isLengthValid ? '✓' : '○'} Mínimo 8 caracteres
                 </div>
-                <div style={{ color: (hasUpperCase && hasLowerCase) ? 'var(--color-green-600)' : 'var(--color-gray-500)' }}>
+                <div className={(hasUpperCase && hasLowerCase) ? 'text-success-600' : 'text-gray-500'}>
                   {(hasUpperCase && hasLowerCase) ? '✓' : '○'} Mayúsculas y minúsculas
                 </div>
-                <div style={{ color: hasNumber ? 'var(--color-green-600)' : 'var(--color-gray-500)' }}>
+                <div className={hasNumber ? 'text-success-600' : 'text-gray-500'}>
                   {hasNumber ? '✓' : '○'} Al menos 1 número
                 </div>
-                <div style={{ color: hasSpecial ? 'var(--color-green-600)' : 'var(--color-gray-500)' }}>
+                <div className={hasSpecial ? 'text-success-600' : 'text-gray-500'}>
                   {hasSpecial ? '✓' : '○'} Carácter especial (!@#$...)
                 </div>
               </div>
@@ -212,16 +195,15 @@ export const RegisterPage: React.FC = () => {
               size="lg"
               isLoading={isLoading} 
               disabled={!isPasswordValid || !doPasswordsMatch}
-              className="login-submit-btn"
-              style={{ marginTop: '1rem' }}
+              className="mt-4"
             >
               Registrarse
             </Button>
           </form>
         </CardBody>
 
-        <div className="login-footer">
-          ¿Ya tienes cuenta? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/login'); }} className="login-link">Iniciar sesión aquí</a>
+        <div className="p-6 text-center text-sm text-gray-500 border-t border-gray-200 bg-gray-50">
+          ¿Ya tienes cuenta? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/login'); }} className="text-primary-500 font-semibold no-underline hover:text-primary-600 hover:underline transition-colors duration-200">Iniciar sesión aquí</a>
         </div>
       </Card>
     </div>

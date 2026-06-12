@@ -5,7 +5,6 @@ import { Button, Input, Card, CardHeader, CardBody } from '../../../../component
 import { authService } from '../../services/authService';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useNotification } from '../../../../hooks/useNotification';
-import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -47,18 +46,18 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <Card className="login-card" elevation="lg" padding="none">
-        <CardHeader className="login-header">
-          <div className="login-logo">
-            <img src="/logo.webp" alt="EnRuta Logo" className="login-logo-img" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-800 p-4 max-sm:p-0 max-sm:bg-white">
+      <Card className="w-full max-w-[420px] bg-white max-sm:max-w-full max-sm:h-screen max-sm:rounded-none max-sm:shadow-none max-sm:flex max-sm:flex-col max-sm:justify-center" elevation="lg" padding="none">
+        <CardHeader className="text-center pt-10 px-6 pb-6 border-b-0 mb-0 max-sm:pt-0">
+          <div className="mb-6 flex justify-center">
+            <img src="/logo.webp" alt="EnRuta Logo" className="h-[60px] w-auto drop-shadow-sm" />
           </div>
-          <h1 className="login-title">Bienvenido</h1>
-          <p className="login-subtitle">Plataforma de Gestión para Operadores</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-1 tracking-tight">Bienvenido</h1>
+          <p className="text-gray-500 text-sm font-medium">Plataforma de Gestión para Operadores</p>
         </CardHeader>
         
-        <CardBody className="login-body">
-          <form onSubmit={handleSubmit} className="login-form">
+        <CardBody className="pt-2 px-8 pb-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Input 
               label="Correo Electrónico" 
               type="email" 
@@ -85,15 +84,15 @@ export const LoginPage: React.FC = () => {
               size="lg"
               isLoading={isLoading} 
               rightIcon={<LogIn size={20} />}
-              className="login-submit-btn"
+              className="mt-2"
             >
               Iniciar Sesión
             </Button>
           </form>
         </CardBody>
 
-        <div className="login-footer">
-          ¿No tienes una cuenta? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }} className="login-link">Crear una cuenta</a>
+        <div className="p-6 text-center text-sm text-gray-500 border-t border-gray-200 bg-gray-50">
+          ¿No tienes una cuenta? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/register'); }} className="text-primary-500 font-semibold no-underline hover:text-primary-600 hover:underline transition-colors duration-200">Crear una cuenta</a>
         </div>
       </Card>
     </div>

@@ -8,9 +8,7 @@ import { NotificationProvider } from './contexts/NotificationContext.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 
 /* Estilos Maestros - CFA Standard */
-import './styles/tokens.css';
-import './styles/globals.css';
-import './index.css';
+import './styles/theme.css';
 
 const queryClient = new QueryClient();
 

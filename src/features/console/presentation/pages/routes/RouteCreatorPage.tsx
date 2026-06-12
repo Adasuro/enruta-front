@@ -8,7 +8,6 @@ import { Button, Input, Card } from '../../../../../components/ui';
 import { useNotification } from '../../../../../hooks/useNotification';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import api from '../../../../../config/api';
-import './RouteCreatorPage.css';
 
 interface Point {
   lat: number;
@@ -146,23 +145,28 @@ export const RouteCreatorPage: React.FC = () => {
   };
 
   return (
-    <div className="route-creator-page">
+    <div className="flex h-full overflow-hidden relative w-full flex-col md:flex-row">
       {/* Botón flotante solo visible en móvil para abrir el formulario */}
       <button 
-        className="mobile-form-toggle"
+        className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-primary-500 text-white border-none py-3 px-6 rounded-full font-bold shadow-lg cursor-pointer"
         onClick={() => setIsFormOpen(!isFormOpen)}
       >
         {isFormOpen ? 'Ver Mapa' : 'Configurar Ruta'}
       </button>
 
       {/* Panel Izquierdo: Formulario */}
-      <div className={`route-creator-sidebar ${isFormOpen ? 'open' : ''}`}>
-        <div className="route-creator-header">
-          <h2>Trazar Nuevo Circuito</h2>
-          <p>Define el recorrido circular marcando puntos clave en el mapa.</p>
+      <div className={`
+        bg-white flex flex-col z-10 overflow-y-auto p-6 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        md:w-[400px] md:min-w-[400px] md:border-r md:border-gray-200 md:h-full md:transform-none md:static
+        max-md:absolute max-md:top-0 max-md:left-0 max-md:right-0 max-md:bottom-0 max-md:w-full max-md:h-auto max-md:max-h-[85vh] max-md:mt-auto max-md:rounded-t-2xl max-md:shadow-[0_-4px_20px_rgba(0,0,0,0.15)] max-md:z-40 max-md:pb-20
+        ${isFormOpen ? 'max-md:translate-y-0' : 'max-md:translate-y-full'}
+      `}>
+        <div className="mb-8 shrink-0">
+          <h2 className="text-xl font-extrabold text-primary-500 tracking-tight">Trazar Nuevo Circuito</h2>
+          <p className="text-sm text-gray-500 mt-1">Define el recorrido circular marcando puntos clave en el mapa.</p>
         </div>
 
-        <div className="form-group" style={{ flexShrink: 0 }}>
+        <div className="flex flex-col gap-4 shrink-0">
           <Input 
             label="Código / Letra Visual" 
             placeholder="Ej. A, 15, W" 
@@ -178,56 +182,59 @@ export const RouteCreatorPage: React.FC = () => {
             onChange={(e) => setDisplayName(e.target.value)}
           />
           
-          <div className="ui-input-wrapper">
-            <label className="ui-input-label">Color del Circuito</label>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: '48px', height: '48px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1.5px solid var(--color-gray-200)', flexShrink: 0 }}>
+          <div className="flex flex-col gap-1.5 w-full">
+            <label className="text-sm font-bold text-gray-700 tracking-wider">Color del Circuito</label>
+            <div className="flex gap-3 items-center">
+              <div className="relative w-12 h-12 rounded-md overflow-hidden border-[1.5px] border-gray-200 shrink-0">
                   <input 
                     type="color" 
                     value={color} 
                     onChange={(e) => setColor(e.target.value)}
-                    style={{ position: 'absolute', inset: '-10px', width: '200%', height: '200%', cursor: 'pointer', border: 'none' }}
+                    className="absolute -inset-2.5 w-[200%] h-[200%] cursor-pointer border-none"
                   />
               </div>
-              <Input 
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                leftIcon={<Palette size={16} />}
-                style={{ fontFamily: 'monospace', textTransform: 'uppercase' }}
-              />
+              <div className="flex-1">
+                <Input 
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  leftIcon={<Palette size={16} />}
+                  className="font-mono uppercase"
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Panel de Puntos de Control */}
         {points.length > 0 && (
-          <div className="route-creator-points">
-            <h4>Puntos de Control</h4>
+          <div className="mt-8 flex-1">
+            <h4 className="text-[0.8125rem] font-bold text-gray-400 uppercase tracking-wider mb-4">Puntos de Control</h4>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+            <div className="flex flex-col gap-2">
               {stopsMeta.map(meta => (
-                <Card key={meta.index} padding="sm" bordered={true} className={meta.isTerminal ? 'terminal-card' : ''} style={{ borderColor: meta.isTerminal ? color : 'var(--color-gray-100)', borderLeftWidth: '4px', borderLeftColor: meta.isTerminal ? color : 'var(--color-gray-200)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Card key={meta.index} padding="sm" bordered={true} className="border-l-4" style={{ borderColor: meta.isTerminal ? color : 'var(--color-gray-100)', borderLeftColor: meta.isTerminal ? color : 'var(--color-gray-200)' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
                       <MapPin size={16} style={{ color: meta.isTerminal ? color : 'var(--color-gray-300)' }} />
-                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontSize: '0.8125rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[0.8125rem] font-bold overflow-hidden text-ellipsis whitespace-nowrap">
                           {meta.streetName}
                         </span>
                         {meta.headingText && (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-400)' }}>Sentido {meta.headingText}</span>
+                          <span className="text-xs text-gray-400">Sentido {meta.headingText}</span>
                         )}
                       </div>
                     </div>
                     
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', userSelect: 'none' }}>
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
                       <input 
                         type="checkbox" 
                         checked={meta.isTerminal} 
                         onChange={() => toggleTerminal(meta.index)}
-                        style={{ accentColor: color, width: '16px', height: '16px' }}
+                        className="w-4 h-4"
+                        style={{ accentColor: color }}
                       />
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: meta.isTerminal ? color : 'var(--color-gray-500)' }}>Term.</span>
+                      <span className="text-xs font-semibold" style={{ color: meta.isTerminal ? color : 'var(--color-gray-500)' }}>Term.</span>
                     </label>
                   </div>
                 </Card>
@@ -236,27 +243,27 @@ export const RouteCreatorPage: React.FC = () => {
           </div>
         )}
 
-        <div className="route-creator-summary">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
-                <span style={{ color: 'var(--color-gray-500)' }}>Puntos:</span>
-                <span style={{ fontWeight: 700, color: points.length < 2 ? 'var(--color-danger)' : 'var(--color-success)' }}>{points.length}</span>
+        <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between text-[0.8125rem]">
+                <span className="text-gray-500">Puntos:</span>
+                <span className={`font-bold ${points.length < 2 ? 'text-danger-500' : 'text-success-500'}`}>{points.length}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
-                <span style={{ color: 'var(--color-gray-500)' }}>Terminales:</span>
-                <span style={{ fontWeight: 700, color: terminalCount < 2 ? 'var(--color-danger)' : 'var(--color-success)' }}>{terminalCount} / 2</span>
+            <div className="flex justify-between text-[0.8125rem]">
+                <span className="text-gray-500">Terminales:</span>
+                <span className={`font-bold ${terminalCount < 2 ? 'text-danger-500' : 'text-success-500'}`}>{terminalCount} / 2</span>
             </div>
           </div>
           
           {(points.length < 2 || terminalCount < 2) && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '0.75rem', color: 'var(--color-warning)', fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.4 }}>
-              <AlertCircle size={14} style={{ flexShrink: 0 }} /> 
+            <div className="flex gap-2 mt-3 text-warning text-xs font-medium leading-snug">
+              <AlertCircle size={14} className="shrink-0" /> 
               <span>{points.length < 2 ? 'Traza al menos 2 puntos.' : 'Marca al menos 2 terminales (inicio/fin).'}</span>
             </div>
           )}
         </div>
 
-        <div className="route-creator-footer">
+        <div className="mt-6 pt-6 border-t border-gray-100">
           <Button 
             variant="primary" 
             fullWidth 
@@ -272,7 +279,7 @@ export const RouteCreatorPage: React.FC = () => {
       </div>
 
       {/* Panel Derecho: Mapa */}
-      <div className="route-creator-map-wrapper">
+      <div className="flex-1 relative bg-gray-100 max-md:h-full max-md:w-full">
         <RouteCreatorMap 
           points={points} 
           onPointsChange={setPoints}

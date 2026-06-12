@@ -9,7 +9,6 @@ import type { Vehicle } from '../../../services/vehicleService';
 import api from '../../../../../config/api';
 import { VehicleModal } from './components/VehicleModal';
 import { VehicleCard } from './components/VehicleCard';
-import './B2BRoutesPage.css'; 
 
 export const B2BRoutesPage: React.FC = () => {
   const { success, error, warning } = useNotification();
@@ -73,45 +72,46 @@ export const B2BRoutesPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="b2b-routes-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 'var(--spacing-4)' }}>
-        <Loader2 className="animate-spin" size={40} color="var(--brand-primary)" />
-        <p style={{ fontWeight: 600 }}>Cargando inventario de flota...</p>
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-500">
+        <Loader2 className="animate-spin text-primary-500" size={40} />
+        <p className="font-semibold text-gray-700">Cargando inventario de flota...</p>
       </div>
     );
   }
 
   return (
-    <div className="b2b-routes-page" style={{ padding: 'var(--spacing-6)', maxWidth: '1200px', margin: '0 auto' }}>
-      <header className="b2b-routes-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-8)' }}>
+    <div className="p-6 md:p-8 max-w-[1400px] mx-auto w-full pb-24 md:pb-8">
+      <header className="flex flex-col md:flex-row justify-between items-start mb-10 gap-4">
         <div>
-          <div className="b2b-routes-header-badge" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', color: 'var(--brand-primary)', fontWeight: 700, fontSize: '0.875rem', marginBottom: 'var(--spacing-2)' }}>
+          <div className="flex items-center gap-2 text-primary-500 font-extrabold text-[0.8125rem] mb-2 uppercase tracking-widest">
             <LayoutGrid size={20} />
             <span>Gestión de Flota</span>
           </div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 var(--spacing-2) 0', color: 'var(--color-text-heading)' }}>Inventario de Vehículos</h2>
-          <p style={{ color: 'var(--color-text-body)', margin: 0 }}>Despacha vehículos a rutas y controla su estado operativo.</p>
+          <h2 className="text-[1.875rem] font-extrabold m-0 mb-1 text-gray-900 tracking-tight">Inventario de Vehículos</h2>
+          <p className="text-gray-500 m-0 text-base">Despacha vehículos a rutas y controla su estado operativo.</p>
         </div>
         <Button 
           variant="primary" 
           size="lg"
           onClick={() => setIsAddModalOpen(true)}
           leftIcon={<Plus size={20} />}
+          className="w-full md:w-auto"
         >
           Añadir Vehículo
         </Button>
       </header>
 
       {vehicles.length === 0 ? (
-        <Card bordered padding="lg" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-bg-surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto var(--spacing-6) auto' }}>
-            <Bus size={32} color="var(--color-text-muted)" />
+        <Card bordered padding="lg" className="col-span-full py-20 px-8 text-center border-dashed bg-transparent border-gray-300">
+          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6 text-gray-400">
+            <Bus size={32} />
           </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 'var(--spacing-2)' }}>Tu flota está vacía</h3>
-          <p style={{ color: 'var(--color-text-body)', maxWidth: '400px', margin: '0 auto var(--spacing-6) auto' }}>Registra las placas de tus unidades para empezar a asignarlas a tus rutas operativas.</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Tu flota está vacía</h3>
+          <p className="text-gray-500 max-w-[400px] mx-auto mb-6 leading-relaxed">Registra las placas de tus unidades para empezar a asignarlas a tus rutas operativas.</p>
           <Button variant="outline" onClick={() => setIsAddModalOpen(true)}>Registrar primer vehículo</Button>
         </Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
           {vehicles.map((vehicle) => (
             <VehicleCard 
               key={vehicle.id} 

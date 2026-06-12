@@ -1,7 +1,6 @@
 import React from 'react';
 import { MapPin, Navigation, X, LocateFixed } from 'lucide-react';
 import { Button, Input, Card, CardBody } from '../ui';
-import './RoutingSearchCard.css';
 
 interface RoutingSearchCardProps {
   originName: string;
@@ -27,44 +26,44 @@ export const RoutingSearchCard: React.FC<RoutingSearchCardProps> = ({
   canSearch,
 }) => {
   return (
-    <Card className="routing-search-card" elevation="lg" padding="none">
-      <CardBody className="routing-search-card__body">
-        <div className="routing-search-card__content">
-          <div className="routing-search-card__inputs-wrapper">
+    <Card className="w-[380px] max-md:w-full max-md:rounded-none max-md:border-x-0 max-md:border-t-0 max-md:shadow-sm" elevation="lg" padding="none">
+      <CardBody className="p-6 max-md:py-3 max-md:px-4">
+        <div className="flex flex-col gap-5 max-md:gap-3">
+          <div className="flex gap-4 max-md:gap-2">
             {/* Indicador visual de ruta (Desktop) */}
-            <div className="routing-search-card__visual-indicator">
-              <div className="indicator-dot indicator-dot--origin" />
-              <div className="indicator-line" />
-              <MapPin size={18} className="indicator-icon" />
+            <div className="flex flex-col items-center py-3 gap-1 max-md:hidden">
+              <div className="w-3 h-3 rounded-full bg-success-500 border-[2.5px] border-white shadow-[0_0_0_2px_theme(colors.gray.100)]" />
+              <div className="flex-1 w-[2px] bg-[repeating-linear-gradient(to_bottom,theme(colors.gray.200),theme(colors.gray.200)_5px,transparent_5px,transparent_10px)]" />
+              <MapPin size={18} className="text-danger-500" />
             </div>
 
-            <div className="routing-search-card__inputs">
-              <div className="search-input-group">
-                <span className="search-input-label">Origen</span>
+            <div className="flex-1 flex flex-col gap-4 max-md:flex-row max-md:gap-2">
+              <div className="flex flex-col gap-1 max-md:flex-1">
+                <span className="text-[0.6875rem] font-extrabold text-gray-400 uppercase tracking-wider max-md:hidden">Origen</span>
                 <Input
                     placeholder="¿Dónde te encuentras?"
                     value={originName}
                     onChange={(e) => onOriginChange(e.target.value)}
-                    className="search-input"
+                    className="max-md:min-h-[40px] max-md:bg-gray-100 max-md:border-transparent"
                     rightIcon={
-                        <button onClick={onUseCurrentLocation} className="search-icon-btn text-primary">
+                        <button onClick={onUseCurrentLocation} className="bg-transparent border-none p-1 cursor-pointer flex items-center text-primary-500">
                             <LocateFixed size={18} />
                         </button>
                     }
                 />
               </div>
               
-              <div className="search-input-group">
-                <span className="search-input-label">Destino</span>
+              <div className="flex flex-col gap-1 max-md:flex-1">
+                <span className="text-[0.6875rem] font-extrabold text-gray-400 uppercase tracking-wider max-md:hidden">Destino</span>
                 <Input
                     placeholder="¿A dónde quieres ir?"
                     value={destinationName}
                     onChange={(e) => onDestinationChange(e.target.value)}
-                    className="search-input"
+                    className="max-md:min-h-[40px] max-md:bg-gray-100 max-md:border-transparent"
                     rightIcon={
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="flex items-center">
                             {(originName || destinationName) && (
-                                <button onClick={onClear} className="search-icon-btn text-muted">
+                                <button onClick={onClear} className="bg-transparent border-none p-1 cursor-pointer flex items-center text-gray-400">
                                     <X size={18} />
                                 </button>
                             )}
@@ -82,7 +81,7 @@ export const RoutingSearchCard: React.FC<RoutingSearchCardProps> = ({
             fullWidth
             size="lg"
             leftIcon={<Navigation size={20} />}
-            className="routing-search-card__btn"
+            className="h-[52px] text-base font-extrabold max-md:h-[44px] max-md:text-sm"
           >
             Trazar Ruta
           </Button>
