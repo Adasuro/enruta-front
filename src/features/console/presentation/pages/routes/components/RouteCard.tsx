@@ -11,7 +11,7 @@ interface RouteCardProps {
     color_primary: string;
     status: string;
     frequency_min?: number;
-    vehicles_count?: number;
+    fleets_count?: number;
     fare_rules?: Array<{
         fare_amount: string;
     }>;
@@ -83,8 +83,8 @@ export const RouteCard: React.FC<RouteCardProps> = ({ route, onManage, onStatusT
           </div>
           <div className="bg-white p-3 flex flex-col items-center gap-1">
             <Bus size={14} className="text-gray-400" />
-            <span className="text-sm font-bold text-gray-900">{route.vehicles_count || 0}</span>
-            <span className="text-[0.625rem] text-gray-400 font-bold uppercase">Flota</span>
+            <span className="text-sm font-bold text-gray-900">{route.fleets_count || 0}</span>
+            <span className="text-[0.625rem] text-gray-400 font-bold uppercase">Flotas</span>
           </div>
         </div>
 

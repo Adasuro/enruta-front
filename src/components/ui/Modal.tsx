@@ -64,7 +64,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            className="fixed inset-0 bg-primary-900/40 flex items-center justify-center z-[1000] backdrop-blur-sm" 
+            className="fixed inset-0 bg-primary-900/30 flex items-center justify-center z-[1000] backdrop-blur-[2px]" 
             initial="hidden"
             animate="visible"
             exit="hidden"

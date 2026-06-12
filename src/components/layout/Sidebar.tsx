@@ -58,7 +58,7 @@ const NAV_CONFIG: Record<string, NavSectionConfig[]> = {
             title: "Operativa",
             icon: <Briefcase size={20} />,
             items: [
-                { to: "/console/routes/fleet", label: "Gestión de Flota", icon: <BusFront size={20} /> },
+                { to: "/console/fleet/list", label: "Gestión de Flota", icon: <BusFront size={20} /> },
                 { to: "/console/users/staff", label: "Personal", icon: <Users size={20} /> },
             ]
         }
