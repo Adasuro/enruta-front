@@ -55,27 +55,14 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
   return (
     <AnimatePresence>
       {isOpen && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem'
-        }}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(4px)'
-            }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
 
           {/* Modal Content */}
@@ -83,36 +70,27 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            style={{
-              position: 'relative',
-              backgroundColor: 'white',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-xl)',
-              width: '100%',
-              maxWidth: '450px',
-              overflow: 'hidden'
-            }}
+            className="relative bg-white rounded-2xl shadow-xl w-full max-w-[450px] overflow-hidden flex flex-col"
           >
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-gray-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--brand-primary-light)', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-500 flex items-center justify-center shrink-0">
                   <Bus size={20} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Añadir Vehículo</h3>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-gray-500)' }}>Registra una nueva unidad en tu flota</p>
+                  <h3 className="m-0 text-xl font-bold text-gray-900 tracking-tight">Añadir Vehículo</h3>
+                  <p className="m-0 text-sm font-medium text-gray-500">Registra una nueva unidad en tu flota</p>
                 </div>
               </div>
               <button 
                 onClick={handleClose}
-                style={{ background: 'none', border: 'none', color: 'var(--color-gray-400)', cursor: 'pointer', padding: '0.25rem' }}
-                className="hover:text-gray-900"
+                className="bg-transparent border-none text-gray-400 cursor-pointer p-1 rounded-full transition-colors hover:text-gray-900 hover:bg-gray-100 flex items-center justify-center"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6 bg-white">
               <Input
                 label="Número de Placa"
                 placeholder="Ej. ABC-123"
@@ -120,27 +98,21 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
                 onChange={(e) => setPlateNumber(e.target.value)}
                 maxLength={10}
                 required
-                style={{ textTransform: 'uppercase' }}
+                className="uppercase"
               />
 
-              <div className="ui-input-wrapper">
-                <label className="ui-input-label">Tipo de Vehículo</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-[0.875rem] font-bold text-gray-700 tracking-[0.01em]">Tipo de Vehículo</label>
+                <div className="grid grid-cols-2 gap-2">
                   {(['bus', 'minibus', 'van', 'car'] as const).map(t => (
                     <div 
                       key={t}
                       onClick={() => setType(t)}
-                      style={{ 
-                        padding: '0.75rem', 
-                        border: `2px solid ${type === t ? 'var(--brand-primary)' : 'var(--color-gray-200)'}`,
-                        borderRadius: 'var(--radius-md)',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        backgroundColor: type === t ? 'var(--brand-primary-light)' : 'white',
-                        color: type === t ? 'var(--brand-primary)' : 'var(--color-gray-600)',
-                        fontWeight: type === t ? 700 : 500,
-                        transition: 'all 0.2s'
-                      }}
+                      className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all duration-200 ${
+                        type === t 
+                          ? 'border-primary-500 bg-primary-50 text-primary-600 font-bold' 
+                          : 'border-gray-200 bg-white text-gray-600 font-medium hover:border-primary-300'
+                      }`}
                     >
                       {t === 'bus' ? 'Bus' : t === 'minibus' ? 'Coaster' : t === 'van' ? 'Minivan' : 'Auto/Colectivo'}
                     </div>
@@ -148,7 +120,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <div className="flex gap-4 mt-2">
                 <Button type="button" variant="outline" fullWidth onClick={handleClose}>
                   Cancelar
                 </Button>

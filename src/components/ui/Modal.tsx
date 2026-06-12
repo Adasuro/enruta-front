@@ -52,11 +52,19 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
       }
     };
 
+    const sizes = {
+      sm: 'max-w-[440px]',
+      md: 'max-w-[640px]',
+      lg: 'max-w-[800px]',
+      xl: 'max-w-[1100px]',
+      full: 'max-w-[95vw] h-[95vh]'
+    };
+
     return (
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            className="ui-modal-backdrop" 
+            className="fixed inset-0 bg-primary-900/40 flex items-center justify-center z-[1000] backdrop-blur-sm" 
             initial="hidden"
             animate="visible"
             exit="hidden"
@@ -65,16 +73,16 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
           >
             <motion.div 
               ref={ref}
-              className={`ui-modal-container ui-modal--${size}`}
+              className={`bg-white rounded-2xl w-[90%] flex flex-col shadow-xl max-h-[90vh] outline-none ${sizes[size]}`}
               variants={modalVariants}
               role="dialog"
               aria-modal="true"
               aria-labelledby="ui-modal-title"
             >
-              <div className="ui-modal-header">
-                <h3 id="ui-modal-title" className="ui-modal-title">{title}</h3>
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 id="ui-modal-title" className="text-lg font-extrabold text-gray-900 m-0 tracking-tight">{title}</h3>
                 <button 
-                  className="ui-modal-close-btn" 
+                  className="bg-gray-50 border-none p-2 rounded-full cursor-pointer text-gray-400 flex items-center justify-center transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary-500 outline-none" 
                   onClick={onClose}
                   aria-label="Cerrar modal"
                 >
@@ -82,12 +90,12 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
                 </button>
               </div>
               
-              <div className="ui-modal-body">
+              <div className="p-6 overflow-y-auto flex-1 overscroll-contain">
                 {children}
               </div>
 
               {footer && (
-                <div className="ui-modal-footer">
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
                   {footer}
                 </div>
               )}

@@ -16,24 +16,14 @@ export const ConsoleLayout: React.FC = () => {
   }
 
   return (
-    <div className="console-layout" style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
-      <main className="console-main" style={{ flex: 1, paddingLeft: '4.5rem', transition: 'padding-left 0.25s ease', height: '100%', position: 'relative' }}>
+      <main className="flex-1 pl-[4.5rem] transition-[padding-left] duration-250 ease h-full relative max-md:pl-0 max-md:pb-[4.5rem] max-md:pt-16">
         {/* Aquí renderizan las sub-rutas (dashboard, rutas, perfil, etc.) */}
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
+        <div className="h-full flex flex-col overflow-y-auto overflow-x-hidden">
             <Outlet />
         </div>
       </main>
-      
-      <style>{`
-        @media (max-width: 767px) {
-            .console-main { 
-              padding-left: 0 !important; 
-              padding-bottom: 4.5rem; 
-              padding-top: 4rem; 
-            }
-        }
-      `}</style>
     </div>
   );
 };

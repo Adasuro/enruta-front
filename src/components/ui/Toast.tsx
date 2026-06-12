@@ -23,7 +23,7 @@ export const Toast: React.FC<ToastProps> = ({ notification, onClose }) => {
   };
 
   return (
-    <div className={`flex items-start justify-between w-[350px] max-w-[calc(100vw-48px)] p-4 bg-white rounded-lg shadow-lg border-l-4 pointer-events-auto animate-in slide-in-from-top-4 fade-in duration-300 max-md:w-full max-md:max-w-full max-md:m-0 max-md:rounded-xl ${borders[notification.type]}`} role="alert">
+    <div className={`flex items-start justify-between w-[350px] max-w-[calc(100vw-48px)] p-4 bg-white rounded-lg shadow-lg border-l-4 pointer-events-auto animate-toast-in max-md:w-full max-md:max-w-full max-md:m-0 max-md:rounded-xl ${borders[notification.type]}`} role="alert">
       <div className="flex gap-3 items-start">
         {icons[notification.type]}
         <div className="flex flex-col gap-1">
@@ -32,7 +32,7 @@ export const Toast: React.FC<ToastProps> = ({ notification, onClose }) => {
         </div>
       </div>
       <button 
-        className="bg-transparent border-none text-gray-500 cursor-pointer p-1 flex items-center justify-center rounded transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900" 
+        className="bg-transparent border-none text-gray-400 cursor-pointer p-1.5 flex items-center justify-center rounded-md transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-gray-300 outline-none" 
         onClick={() => onClose(notification.id)}
         aria-label="Cerrar notificación"
       >

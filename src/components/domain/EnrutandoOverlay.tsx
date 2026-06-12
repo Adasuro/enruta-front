@@ -14,49 +14,35 @@ export const EnrutandoOverlay: React.FC<EnrutandoOverlayProps> = ({ isVisible, m
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.75)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-          }}
+          className="fixed inset-0 bg-white/75 backdrop-blur-md flex items-center justify-center z-[9999]"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5rem', textAlign: 'center' }}>
-            <div style={{ position: 'relative', width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="flex flex-col items-center gap-10 text-center">
+            <div className="relative w-[120px] h-[120px] flex items-center justify-center">
                 <motion.img 
                     src="/logo.webp" 
                     alt="EnRuta" 
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                    style={{ width: '80px', height: 'auto', zIndex: 2 }} 
+                    className="w-[80px] h-auto z-10 drop-shadow-sm" 
                 />
-                <div className="enrutando-rings">
+                <div className="absolute inset-0">
                     {[1, 2, 3].map((i) => (
                         <motion.div 
                             key={i}
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1.5, opacity: [0, 0.4, 0] }}
                             transition={{ repeat: Infinity, duration: 3, delay: i - 1, ease: "easeOut" }}
-                            style={{
-                                position: 'absolute',
-                                inset: 0,
-                                border: '2px solid var(--brand-primary)',
-                                borderRadius: '50%'
-                            }}
+                            className="absolute inset-0 border-2 border-primary-500 rounded-full"
                         />
                     ))}
                 </div>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-primary)', margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div className="flex flex-col gap-3">
+              <h2 className="text-xl font-extrabold text-primary-500 m-0 tracking-[0.1em] uppercase">
                 Enrutando
               </h2>
-              <p style={{ fontSize: '1rem', color: 'var(--color-gray-500)', margin: 0, fontWeight: 500 }}>
+              <p className="text-base text-gray-500 m-0 font-medium">
                 {message || 'Buscando las mejores conexiones...'}
               </p>
             </div>
