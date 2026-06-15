@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { routeService, type Point, type RoutingResult } from '../services/routeService';
+import { useNotification } from '../../../hooks/useNotification';
 
 export const useEnrutamiento = () => {
   const [origin, setOrigin] = useState<Point | null>(null);
@@ -11,6 +12,8 @@ export const useEnrutamiento = () => {
   const [searchResults, setSearchResults] = useState<RoutingResult | null>(null);
   const [radiusMsg, setRadiusMsg] = useState('');
   const [isLocating, setIsLocating] = useState(false);
+  
+  const { info, warning, error: notifyError } = useNotification();
 
   // Reverse Geocoding
   const fetchAddress = async (lat: number, lng: number) => {
@@ -31,35 +34,43 @@ export const useEnrutamiento = () => {
     return p;
   }, []);
 
-  // Initial Geolocation
-    useEffect(() => {
-      if (navigator.geolocation && !origin) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            updateOriginFromCoords(pos.coords.latitude, pos.coords.longitude);
-          },
-          () => console.warn("Geolocation initial error"),
-          { enableHighAccuracy: true }
-        );
-      }
-    }, [origin, updateOriginFromCoords]);
+  const useCurrentLocation = useCallback(async () => {
+    if (!navigator.geolocation) {
+        notifyError('Tu navegador no soporta geolocalización.');
+        return;
+    }
+    
+    setIsLocating(true);
+    info('Conectando con el servicio de ubicación...', 'GPS');
 
-    const useCurrentLocation = useCallback(() => {
-      if (!navigator.geolocation) return;
-      
-      setIsLocating(true);
-      navigator.geolocation.getCurrentPosition(
+    const options = {
+        enableHighAccuracy: false, 
+        timeout: 15000,
+        maximumAge: 0
+    };
+
+    navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          await updateOriginFromCoords(pos.coords.latitude, pos.coords.longitude);
-          setIsLocating(false);
+            await updateOriginFromCoords(pos.coords.latitude, pos.coords.longitude);
+            setIsLocating(false);
+            info('Ubicación obtenida.', 'GPS');
         },
         (err) => {
-          console.warn("Geolocation click error", err);
-          setIsLocating(false);
+            setIsLocating(false);
+            if (err.code === 3) {
+                warning(
+                    'Tiempo agotado. Windows está tardando en responder. Intenta activar el WiFi o revisa la Privacidad de Ubicación en Windows.',
+                    'Soporte Técnico'
+                );
+            } else if (err.code === 1) {
+                warning('Permiso bloqueado. Activa la ubicación en la configuración del navegador.', 'GPS');
+            } else {
+                notifyError('Error al acceder al sensor de ubicación.');
+            }
         },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    }, [updateOriginFromCoords]);
+        options
+    );
+  }, [updateOriginFromCoords, info, warning, notifyError]);
 
   const clearLocation = useCallback((type: 'origin' | 'destination') => {
     if (type === 'origin') {
@@ -78,7 +89,6 @@ export const useEnrutamiento = () => {
     setIsSearching(true);
     setSearchResults(null);
     
-    // Simular el cambio de mensaje por radio
     const steps = [20, 50, 100, 200, 300];
     for (const r of steps) {
       setRadiusMsg(`Buscando rutas a ${r}m...`);
@@ -91,9 +101,8 @@ export const useEnrutamiento = () => {
           return;
         }
       } catch {
-        console.error("Search error");
+        // Silent error to continue search steps
       }
-      // Pequeño delay para que el usuario vea el escaneo de radios
       await new Promise(resolve => setTimeout(resolve, 400));
     }
     
@@ -125,8 +134,3 @@ export const useEnrutamiento = () => {
     isLocating
   };
 };
-
-
-
-
-

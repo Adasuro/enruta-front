@@ -3,7 +3,6 @@ import Map, { Marker, Source, Layer, NavigationControl, type MapRef } from 'reac
 import type { MapLayerMouseEvent } from 'react-map-gl/maplibre';
 import { MapPin, CircleDot, ArrowUpCircle, LogOut, Crosshair, Target, Flag, Bus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNotification } from '../../../hooks/useNotification';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { type Journey } from '../../../features/console/services/routeService';
 
@@ -17,7 +16,8 @@ interface RoutingMapProps {
   destination: Point | null;
   onMapClick: (point: Point) => void;
   onMarkerDrag: (type: 'origin' | 'destination', point: Point) => void;
-  onGeolocate: (point: Point) => void;
+  onLocateMe: () => void;
+  isLocating?: boolean;
   selectedRoute: Journey | null;
 }
 
@@ -56,12 +56,11 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
   destination,
   onMapClick,
   onMarkerDrag,
-  onGeolocate,
+  onLocateMe,
+  isLocating = false,
   selectedRoute
 }) => {
   const mapRef = useRef<MapRef>(null);
-  const { warning, error: notifyError, info } = useNotification();
-  const [isLocating, setIsLocating] = useState(false);
   const [showVehicleOverlay, setShowVehicleOverlay] = useState(false);
 
   const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
@@ -72,12 +71,12 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
     zoom: 14
   };
 
-  // Auto-center when origin or destination changes manually
+  // Auto-center when origin or destination changes
   useEffect(() => {
     if (origin && !selectedRoute && mapRef.current) {
         mapRef.current.flyTo({ 
           center: [origin.lng, origin.lat], 
-          zoom: 15, 
+          zoom: 16, 
           duration: 1500,
           essential: true
         });
@@ -108,56 +107,6 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
         }
     }
   }, [selectedRoute]);
-
-  const handleCustomGeolocate = () => {
-      if (!navigator.geolocation) {
-          notifyError('Tu navegador no soporta geolocalización.');
-          return;
-      }
-
-      setIsLocating(true);
-      info('Obteniendo tu posición GPS...', 'Ubicación');
-
-      const options = {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-      };
-
-      const success = (pos: GeolocationPosition) => {
-          const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          onGeolocate(p);
-          mapRef.current?.flyTo({ center: [p.lng, p.lat], zoom: 16, duration: 1500 });
-          setIsLocating(false);
-          info('Ubicación obtenida con éxito.', 'GPS');
-      };
-
-      const failure = (err: GeolocationPositionError) => {
-          console.warn(`GPS Attempt failed (Code ${err.code}): ${err.message}`);
-          
-          // Fallback: If High Accuracy failed due to timeout, try once more with low accuracy
-          if (err.code === 3 && options.enableHighAccuracy) {
-              info('GPS lento, reintentando con precisión básica...', 'Ubicación');
-              navigator.geolocation.getCurrentPosition(success, (err2) => {
-                  console.error("GPS Final Error:", err2);
-                  setIsLocating(false);
-                  notifyError('Tiempo de espera agotado. Revisa si el GPS de tu equipo está activo.');
-              }, { ...options, enableHighAccuracy: false, timeout: 10000 });
-              return;
-          }
-
-          setIsLocating(false);
-          if (err.code === 1) {
-              warning('Permiso denegado. Activa la ubicación en tu navegador y sistema operativo.', 'GPS Bloqueado');
-          } else if (err.code === 2) {
-              notifyError('Posición no disponible. Asegúrate de tener señal o WiFi.');
-          } else {
-              notifyError('No se pudo obtener tu ubicación.');
-          }
-      };
-
-      navigator.geolocation.getCurrentPosition(success, failure, options);
-  };
 
   const handleGoToOrigin = () => {
       if (!origin) return;
@@ -225,7 +174,7 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
       <div className="absolute top-4 right-4 z-50 flex flex-col gap-2">
           {/* Custom GPS Button */}
           <button 
-            onClick={handleCustomGeolocate}
+            onClick={onLocateMe}
             disabled={isLocating}
             className={`w-12 h-12 rounded-2xl bg-white border-2 flex items-center justify-center shadow-xl transition-all duration-300 ${
                 isLocating ? 'border-primary-500 text-primary-500 animate-pulse' : 'border-gray-100 text-gray-700 hover:scale-105 active:scale-95'

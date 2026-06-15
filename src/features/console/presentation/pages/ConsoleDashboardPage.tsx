@@ -108,22 +108,13 @@ const RoutingDashboardMap: React.FC = () => {
     }
   };
 
-  const handleGeolocate = async (p: {lat: number, lng: number}) => {
-    setOrigin(p);
-    const name = await fetchAddress(p.lat, p.lng);
-    setOriginName(name);
-  };
-
   const handleMapClick = async (p: {lat: number, lng: number}) => {
-    // Si no hay origen, el primer clic establece el origen
     if (!origin) {
       setOrigin(p);
       setOriginName('Cargando...');
       const name = await fetchAddress(p.lat, p.lng);
       setOriginName(name);
-    } 
-    // Si ya hay origen, cualquier clic adicional establece/actualiza el destino
-    else {
+    } else {
       setDestination(p);
       setDestinationName('Cargando...');
       const name = await fetchAddress(p.lat, p.lng);
@@ -179,7 +170,8 @@ const RoutingDashboardMap: React.FC = () => {
             destination={destination} 
             onMapClick={handleMapClick}
             onMarkerDrag={handleMarkerDrag}
-            onGeolocate={handleGeolocate}
+            onLocateMe={useCurrentLocation}
+            isLocating={isLocating}
             selectedRoute={selectedJourney}
           />
         </div>
