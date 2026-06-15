@@ -1,15 +1,19 @@
 import React from 'react';
-import { Card, Button } from '../../../../../../components/ui';
+import { Card, Button, Select, ActionGroup } from '../../../../../../components/ui';
 import { VehicleStatusBadge } from '../../../../../../components/ui/VehicleStatusBadge';
 import type { Vehicle } from '../../../../services/vehicleService';
+import { Bus, Wrench, CheckCircle2 } from 'lucide-react';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
   availableFleets: Array<{ id: string; name: string }>;
   isUpdatingFleet: boolean;
   isUpdatingStatus: boolean;
+  isDeleting?: boolean;
   onFleetAssign: (vehicleId: string, fleetId: string) => void;
   onStatusToggle: (vehicleId: string, currentStatus: Vehicle['status']) => void;
+  onEdit?: (vehicle: Vehicle) => void;
+  onDelete?: (vehicleId: string) => void;
 }
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -17,71 +21,75 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   availableFleets,
   isUpdatingFleet,
   isUpdatingStatus,
+  isDeleting,
   onFleetAssign,
-  onStatusToggle
+  onStatusToggle,
+  onEdit,
+  onDelete
 }) => {
+  const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
+
   return (
     <Card 
-      bordered 
-      padding="md" 
-      className="flex flex-col gap-4 transition-all duration-200 ease-in-out hover:shadow-md"
+      padding="none" 
+      className="flex flex-col transition-all duration-200 ease-in-out hover:shadow-lg border border-gray-200 overflow-hidden bg-white"
     >
-      {vehicle.photo_front && (
-        <div className="w-full h-32 rounded-lg overflow-hidden mb-2 border border-gray-100 relative bg-gray-50">
+      <div className="w-full h-36 bg-gray-100 relative border-b border-gray-100">
+        {vehicle.photo_front ? (
           <img 
-            src={`http://localhost:8000/storage/${vehicle.photo_front}`} 
+            src={`${STORAGE_URL}/${vehicle.photo_front}`} 
             alt="Frontal" 
             className="w-full h-full object-cover"
           />
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-300">
+            <Bus size={48} strokeWidth={1.5} />
+          </div>
+        )}
+        <div className="absolute top-3 left-3">
           <VehicleStatusBadge status={vehicle.status} size="lg" />
-          
-          <div>
-            <h4 className="m-0 mb-1 text-lg font-bold tracking-wider font-mono text-gray-900">
+        </div>
+      </div>
+
+      <div className="p-5 flex flex-col gap-5">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex flex-col">
+            <h4 className="m-0 text-[1.25rem] font-black tracking-wider font-mono text-gray-900 leading-none">
               {vehicle.plate_number}
             </h4>
-            <div className="flex items-center gap-2 text-[0.8125rem]">
-              <span className="text-gray-500 font-medium">
-                {vehicle.brand || 'Sin Marca'} {vehicle.model_name ? `- ${vehicle.model_name}` : ''}
-              </span>
-            </div>
+            <span className="text-sm text-gray-500 font-medium mt-1">
+              {vehicle.brand || 'Sin Marca'} {vehicle.model_name ? `• ${vehicle.model_name}` : ''}
+            </span>
           </div>
+          
+          <ActionGroup 
+            onEdit={onEdit ? () => onEdit(vehicle) : undefined}
+            onDelete={onDelete ? () => onDelete(vehicle.id) : undefined}
+            isDeleting={isDeleting}
+          />
         </div>
-      </div>
 
-      <div className="flex-1 min-w-[250px] flex flex-col gap-1 max-md:min-w-full">
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Asignación a Flota
-        </label>
-        <select 
-          value={vehicle.fleet_id || ''} 
-          onChange={(e) => onFleetAssign(vehicle.id, e.target.value)}
-          disabled={isUpdatingFleet}
-          className={`w-full p-2.5 rounded-lg outline-none transition-all duration-200 cursor-pointer text-sm ${
-            vehicle.fleet_id 
-              ? 'border border-primary-200 bg-primary-50 text-primary-600 font-bold hover:bg-primary-100' 
-              : 'border border-gray-200 bg-white text-gray-700 font-medium hover:border-primary-300'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          <option value="">-- Inventario General --</option>
-          {availableFleets.map((f) => (
-            <option key={f.id} value={f.id}>{f.name}</option>
-          ))}
-        </select>
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <Select 
+            label="Asignación a Flota"
+            value={vehicle.fleet_id || ''} 
+            onChange={(e) => onFleetAssign(vehicle.id, e.target.value)}
+            disabled={isUpdatingFleet}
+            options={[
+              { value: '', label: '-- Inventario General (Sin Flota) --' },
+              ...availableFleets.map(f => ({ value: f.id, label: f.name }))
+            ]}
+          />
+        </div>
 
-      <div className="flex gap-2">
         <Button 
           variant={vehicle.status === 'active' ? 'outline' : 'primary'} 
-          size="sm"
           onClick={() => onStatusToggle(vehicle.id, vehicle.status)}
           disabled={isUpdatingStatus}
-          className="w-full"
+          className={`w-full font-bold shadow-sm ${vehicle.status === 'active' ? 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-900' : ''}`}
+          leftIcon={vehicle.status === 'active' ? <Wrench size={16} /> : <CheckCircle2 size={16} />}
         >
-          {vehicle.status === 'active' ? 'Enviar a Taller' : 'Marcar Operativo'}
+          {vehicle.status === 'active' ? 'Enviar a Mantenimiento' : 'Marcar Operativo'}
         </Button>
       </div>
     </Card>

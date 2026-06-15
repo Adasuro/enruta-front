@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { 
   Plus, Hash, Tag, 
-  Calendar, ShieldCheck, Camera, 
-  Upload, Navigation, X
+  Calendar, Camera, 
+  Upload, Navigation, X, Edit2
 } from 'lucide-react';
-import { Button, Input, Modal } from '../../../../../../components/ui';
+import { Button, Input, Modal, Select } from '../../../../../../components/ui';
 import { vehicleService } from '../../../../services/vehicleService';
-import type { CreateVehicleDTO } from '../../../../services/vehicleService';
+import type { CreateVehicleDTO, Vehicle } from '../../../../services/vehicleService';
 import { useNotification } from '../../../../../../hooks/useNotification';
 import api from '../../../../../../config/api';
 
@@ -15,18 +15,20 @@ interface VehicleModalProps {
   isOpen: boolean;
   onClose: () => void;
   businessId: string;
+  editingVehicle?: Vehicle | null;
 }
 
-export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, businessId }) => {
+export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, businessId, editingVehicle }) => {
   const queryClient = useQueryClient();
   const { success, error: showError } = useNotification();
+  const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
   
   const [formData, setFormData] = useState({
     plate_number: '',
     brand: '',
     model: '',
     year: new Date().getFullYear().toString(),
-    status: 'active' as const,
+    status: 'active' as Vehicle['status'],
     soat: '',
     fleet_id: ''
   });
@@ -51,6 +53,38 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
     sign: null
   });
 
+  // Populate data when editing
+  useEffect(() => {
+    if (editingVehicle) {
+      setFormData({
+        plate_number: editingVehicle.plate_number,
+        brand: editingVehicle.brand || '',
+        model: editingVehicle.model_name || '',
+        year: editingVehicle.year?.toString() || new Date().getFullYear().toString(),
+        status: editingVehicle.status,
+        soat: editingVehicle.soat || '',
+        fleet_id: editingVehicle.fleet_id || ''
+      });
+      setPreviews({
+        front: editingVehicle.photo_front ? `${STORAGE_URL}/${editingVehicle.photo_front}` : null,
+        side: editingVehicle.photo_side ? `${STORAGE_URL}/${editingVehicle.photo_side}` : null,
+        sign: editingVehicle.photo_sign ? `${STORAGE_URL}/${editingVehicle.photo_sign}` : null,
+      });
+    } else {
+      setFormData({
+        plate_number: '',
+        brand: '',
+        model: '',
+        year: new Date().getFullYear().toString(),
+        status: 'active',
+        soat: '',
+        fleet_id: ''
+      });
+      setPreviews({ front: null, side: null, sign: null });
+    }
+    setPhotos({ front: null, side: null, sign: null });
+  }, [editingVehicle, isOpen, STORAGE_URL]);
+
   const frontInputRef = useRef<HTMLInputElement>(null);
   const sideInputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
@@ -65,44 +99,43 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
     enabled: isOpen && !!businessId
   });
 
-  const createMutation = useMutation({
+  const mutation = useMutation({
     mutationFn: async (data: CreateVehicleDTO) => {
+      if (editingVehicle) {
+        return vehicleService.updateVehicle(editingVehicle.id, data);
+      }
       return vehicleService.createVehicle(data);
     },
     onSuccess: () => {
-      success('La unidad ha sido integrada a tu flota operativa.', 'Vehículo Registrado');
+      success(
+        editingVehicle ? 'Los datos de la unidad han sido actualizados.' : 'La unidad ha sido integrada a tu flota operativa.', 
+        editingVehicle ? 'Vehículo Actualizado' : 'Vehículo Registrado'
+      );
       queryClient.invalidateQueries({ queryKey: ['vehicles', businessId] });
       handleClose();
     },
     onError: (err: any) => {
-      showError(err.response?.data?.message || 'Hubo un problema al registrar la unidad.', 'Error de Registro');
+      showError(err.response?.data?.message || 'Hubo un problema al procesar la unidad.', 'Error de Operación');
     }
   });
 
-  // Limpiar URLs creadas para previews
+  // Limpiar URLs creadas para previews (solo las que son de archivos nuevos)
   useEffect(() => {
     return () => {
-      Object.values(previews).forEach(url => {
-        if (url) URL.revokeObjectURL(url);
+      Object.entries(previews).forEach(([key, url]) => {
+        // Solo revocar si el url empieza con blob: (es un archivo local nuevo)
+        if (url?.startsWith('blob:') && !photos[key as keyof typeof photos]) {
+           // wait, if it has a photo object it means it IS a blob we want to keep until close
+        }
       });
     };
-  }, [previews]);
+  }, [previews, photos]);
 
   const handleClose = () => {
-    setFormData({
-      plate_number: '',
-      brand: '',
-      model: '',
-      year: new Date().getFullYear().toString(),
-      status: 'active',
-      soat: '',
-      fleet_id: ''
-    });
-    setPhotos({ front: null, side: null, sign: null });
+    // Revoke local blobs
     Object.values(previews).forEach(url => {
-      if (url) URL.revokeObjectURL(url);
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
     });
-    setPreviews({ front: null, side: null, sign: null });
     onClose();
   };
 
@@ -110,7 +143,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
     e.preventDefault();
     if (!formData.plate_number) return;
     
-    createMutation.mutate({
+    mutation.mutate({
       business_id: businessId,
       plate_number: formData.plate_number.toUpperCase().trim(),
       brand: formData.brand || undefined,
@@ -130,7 +163,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
       const url = URL.createObjectURL(file);
       setPhotos(prev => ({ ...prev, [key]: file }));
       setPreviews(prev => {
-        if (prev[key]) URL.revokeObjectURL(prev[key]!);
+        if (prev[key]?.startsWith('blob:')) URL.revokeObjectURL(prev[key]!);
         return { ...prev, [key]: url };
       });
     }
@@ -140,7 +173,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
     e.stopPropagation();
     setPhotos(prev => ({ ...prev, [key]: null }));
     setPreviews(prev => {
-      if (prev[key]) URL.revokeObjectURL(prev[key]!);
+      if (prev[key]?.startsWith('blob:')) URL.revokeObjectURL(prev[key]!);
       return { ...prev, [key]: null };
     });
     // Reset the input value
@@ -168,10 +201,13 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
         {previews[key] ? (
           <>
             <img src={previews[key]!} alt={label} className="absolute inset-0 w-full h-full object-cover opacity-90" />
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Upload size={24} className="text-white" />
+            </div>
             <button 
               type="button"
               onClick={(e) => removePhoto(key, e)}
-              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-20"
             >
               <X size={14} />
             </button>
@@ -195,21 +231,21 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
     <Modal 
       isOpen={isOpen} 
       onClose={handleClose} 
-      title="Registrar Vehículo"
+      title={editingVehicle ? "Editar Vehículo" : "Registrar Vehículo"}
       size="xl"
       footer={
         <>
-          <Button variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
+          <Button variant="ghost" onClick={handleClose} disabled={mutation.isPending}>
             Cancelar
           </Button>
           <Button 
             variant="primary" 
             onClick={handleSubmit} 
-            isLoading={createMutation.isPending}
+            isLoading={mutation.isPending}
             disabled={!formData.plate_number || formData.plate_number.length < 6}
-            leftIcon={<Plus size={18} />}
+            leftIcon={editingVehicle ? <Edit2 size={18} /> : <Plus size={18} />}
           >
-            Guardar Vehículo
+            {editingVehicle ? "Actualizar Cambios" : "Guardar Vehículo"}
           </Button>
         </>
       }
@@ -272,19 +308,16 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
                     <h3 className="text-xs font-black uppercase tracking-widest m-0">2. Asignación a Flota</h3>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-gray-700">Flota (Opcional)</label>
-                    <select 
-                      value={formData.fleet_id}
-                      onChange={(e) => setFormData({...formData, fleet_id: e.target.value})}
-                      className="w-full p-2.5 rounded-lg border border-gray-200 bg-white text-gray-700 outline-none hover:border-primary-300 focus:border-primary-500"
-                    >
-                      <option value="">-- Sin flota asignada --</option>
-                      {fleets.map((f: any) => (
-                        <option key={f.id} value={f.id}>{f.name}</option>
-                      ))}
-                    </select>
-                </div>
+                <Select 
+                  label="Flota (Opcional)"
+                  value={formData.fleet_id}
+                  onChange={(e) => setFormData({...formData, fleet_id: e.target.value})}
+                  options={[
+                    { value: '', label: '-- Sin flota asignada --' },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...fleets.map((f: any) => ({ value: f.id, label: f.name }))
+                  ]}
+                />
             </section>
           </div>
 
@@ -292,34 +325,15 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ isOpen, onClose, bus
             <section className="flex flex-col gap-5">
                 <div className="flex items-center gap-2 text-primary-600">
                     <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center">
-                        <ShieldCheck size={18} />
-                    </div>
-                    <h3 className="text-xs font-black uppercase tracking-widest m-0">3. Legal</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-5">
-                    <Input 
-                        label="Nro de SOAT"
-                        placeholder="Ej. 123456789"
-                        value={formData.soat}
-                        onChange={(e) => setFormData({...formData, soat: e.target.value})}
-                        leftIcon={<ShieldCheck size={16} />}
-                    />
-                </div>
-            </section>
-
-            <section className="flex flex-col gap-5">
-                <div className="flex items-center gap-2 text-primary-600">
-                    <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center">
                         <Camera size={18} />
                     </div>
-                    <h3 className="text-xs font-black uppercase tracking-widest m-0">4. Registro Visual (Opcional)</h3>
+                    <h3 className="text-xs font-black uppercase tracking-widest m-0">4. Registro Visual (Fachada)</h3>
                 </div>
+                <p className="text-xs text-gray-500 -mt-3">Sube las fotos reales de la unidad. El <strong>Letrero</strong> es vital para que el pasajero lo identifique en el mapa.</p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {renderPhotoUpload('front', 'Frontal', 'Placa visible', frontInputRef)}
-                    {renderPhotoUpload('side', 'Lateral', 'Perfil unidad', sideInputRef)}
-                    {renderPhotoUpload('sign', 'Letrero', 'Cartel ruta', signInputRef)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {renderPhotoUpload('front', 'Foto Frontal', 'Vehículo completo', frontInputRef)}
+                    {renderPhotoUpload('sign', 'Foto del Letrero', 'Cartel o placa visible', signInputRef)}
                 </div>
             </section>
           </div>

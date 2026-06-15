@@ -7,29 +7,50 @@ export interface Point {
   lng: number;
 }
 
-export interface RoutingResult {
-  radius_reached: number;
-  results: RouteResult[];
+export interface VehicleReference {
+  type: string;
+  photo_front_url?: string;
+  photo_sign_url?: string;
 }
 
-export interface RouteResult {
-  id: string;
-  visual_code: string;
-  display_name: string | null;
-  color_primary: string;
-  color_secondary: string | null;
-  path_geojson: {
+export interface JourneyStep {
+  type: 'WALK' | 'TRANSIT';
+  distance_m?: number;
+  instruction?: string;
+  route_info?: {
+    id: string;
+    name: string | null;
+    visual_code: string;
+    color_primary: string;
+    color_secondary: string | null;
+  };
+  vehicle_references?: VehicleReference[];
+  boarding_stop?: string;
+  exit_stop?: string;
+  geometry: {
     type: 'LineString';
     coordinates: [number, number][];
   };
-  boarding_point: {
-    type: string;
-    coordinates: [number, number];
-  };
-  fare: {
-    amount: number;
+}
+
+export interface Journey {
+  id: string;
+  tags: string[];
+  summary: {
+    total_fare: number;
     currency: string;
+    total_duration_min: number;
   };
+  steps: JourneyStep[];
+}
+
+export interface RoutingResult {
+  search_meta: {
+    origin: Point;
+    destination: Point;
+    radius_reached: number;
+  };
+  journeys: Journey[];
 }
 
 export const routeService = {

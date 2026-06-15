@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Plus, Edit2, Trash2, ShieldAlert } from 'lucide-react';
-import { Button, Input, Card, Modal } from '../../../../../../components/ui';
+import { Loader2, Plus } from 'lucide-react';
+import { Button, Input, Modal, Select, ConfirmModal } from '../../../../../../components/ui';
 import { fleetService } from '../../../../services/fleetService';
 import type { Fleet } from '../../../../services/fleetService';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { useNotification } from '../../../../../../hooks/useNotification';
+import { FleetCard } from './FleetCard';
 
 export const FleetManager: React.FC = () => {
   const { activeBusinessId } = useAuth();
@@ -14,6 +15,7 @@ export const FleetManager: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFleet, setEditingFleet] = useState<Fleet | null>(null);
+  const [fleetToDelete, setFleetToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     color_code: '#3B82F6',
@@ -60,6 +62,7 @@ export const FleetManager: React.FC = () => {
     onSuccess: () => {
       success('Flota eliminada exitosamente.', 'Operación Exitosa');
       queryClient.invalidateQueries({ queryKey: ['fleets', activeBusinessId] });
+      setFleetToDelete(null);
     },
     onError: () => error('Error al eliminar la flota. Verifique si tiene vehículos asignados.', 'Error')
   });
@@ -80,9 +83,9 @@ export const FleetManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Está seguro de eliminar esta flota? Esta acción no se puede deshacer.')) {
-      deleteMutation.mutate(id);
+  const handleDelete = () => {
+    if (fleetToDelete) {
+      deleteMutation.mutate(fleetToDelete);
     }
   };
 
@@ -126,28 +129,12 @@ export const FleetManager: React.FC = () => {
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {fleets.map(fleet => (
-          <Card key={fleet.id} bordered className="flex flex-col justify-between" style={{ borderTop: `4px solid ${fleet.color_code || '#cbd5e1'}` }}>
-            <div className="mb-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-lg font-bold text-gray-900 m-0">{fleet.name}</h3>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${fleet.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                  {fleet.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
-                </span>
-              </div>
-              <p className="text-sm text-gray-500 m-0 mt-2 flex items-center gap-1 font-medium">
-                <ShieldAlert size={14}/> {fleet.vehicles_count || 0} vehículos asignados
-              </p>
-            </div>
-            
-            <div className="flex gap-2 border-t border-gray-100 pt-4 mt-auto">
-              <Button variant="outline" size="sm" onClick={() => handleEdit(fleet)} className="flex-1">
-                <Edit2 size={16} className="mr-2" /> Editar
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleDelete(fleet.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200">
-                <Trash2 size={16} />
-              </Button>
-            </div>
-          </Card>
+          <FleetCard 
+            key={fleet.id} 
+            fleet={fleet} 
+            onEdit={handleEdit} 
+            onDelete={setFleetToDelete} 
+          />
         ))}
 
         {fleets.length === 0 && (
@@ -163,7 +150,7 @@ export const FleetManager: React.FC = () => {
         title={editingFleet ? 'Editar Flota' : 'Nueva Flota'}
         footer={
           <>
-            <Button variant="outline" onClick={handleClose}>Cancelar</Button>
+            <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
             <Button 
               variant="primary" 
               onClick={handleSubmit} 
@@ -175,7 +162,7 @@ export const FleetManager: React.FC = () => {
           </>
         }
       >
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-1">
           <Input 
             label="Nombre de la Flota"
             placeholder="Ej. Flota Norte"
@@ -184,27 +171,36 @@ export const FleetManager: React.FC = () => {
             required
           />
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-700">Color Identificador</label>
+            <label className="text-[0.875rem] font-bold text-gray-700 tracking-[0.01em]">Color Identificador</label>
             <input 
               type="color" 
               value={formData.color_code}
               onChange={(e) => setFormData({...formData, color_code: e.target.value})}
-              className="w-full h-10 p-1 rounded-lg border border-gray-200 cursor-pointer"
+              className="w-full h-[48px] p-1 rounded-lg border-[1.5px] border-solid border-gray-200 cursor-pointer"
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-700">Estado</label>
-            <select 
-              value={formData.status}
-              onChange={(e) => setFormData({...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE'})}
-              className="w-full p-2.5 rounded-lg border border-gray-200 bg-white text-gray-700 outline-none focus:border-primary-500"
-            >
-              <option value="ACTIVE">Activo</option>
-              <option value="INACTIVE">Inactivo</option>
-            </select>
-          </div>
+          <Select 
+            label="Estado"
+            value={formData.status}
+            onChange={(e) => setFormData({...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE'})}
+            options={[
+              { value: 'ACTIVE', label: 'Operativa' },
+              { value: 'INACTIVE', label: 'Inactiva' }
+            ]}
+          />
         </form>
       </Modal>
+
+      <ConfirmModal 
+        isOpen={!!fleetToDelete}
+        title="Eliminar Flota"
+        message="¿Está seguro de eliminar esta flota? Esta acción no se puede deshacer y fallará si hay vehículos asignados."
+        confirmText="Eliminar permanentemente"
+        isDestructive
+        isLoading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+        onCancel={() => setFleetToDelete(null)}
+      />
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { useEnrutamiento } from '../../hooks/useEnrutamiento';
 import { RoutingMap } from '../../../../components/ui/Map';
 import { RouteResultCard, EnrutandoOverlay, RoutingSearchCard } from '../../../../components/domain';
 import { Frown, Info, X, Bus, Route as RouteIcon, TrendingUp, Users } from 'lucide-react';
-import { type RouteResult } from '../../services/routeService';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { Card } from '../../../../components/ui';
 
@@ -94,7 +93,7 @@ const RoutingDashboardMap: React.FC = () => {
     useCurrentLocation, clearLocation
   } = useEnrutamiento();
 
-  const [selectedRoute, setSelectedRoute] = useState<RouteResult | null>(null);
+  const [selectedJourney, setSelectedJourney] = useState<any>(null);
   const [sheetState, setSheetState] = useState<SheetState>('closed');
 
   const handleSearch = async () => {
@@ -132,7 +131,7 @@ const RoutingDashboardMap: React.FC = () => {
 
   const handleCloseResults = () => {
     setSearchResults(null);
-    setSelectedRoute(null);
+    setSelectedJourney(null);
     setSheetState('closed');
   };
 
@@ -165,7 +164,7 @@ const RoutingDashboardMap: React.FC = () => {
             destination={destination} 
             onMapClick={handleMapClick}
             onMarkerDrag={handleMarkerDrag}
-            selectedRoute={selectedRoute as any}
+            selectedRoute={selectedJourney}
           />
         </div>
 
@@ -175,12 +174,12 @@ const RoutingDashboardMap: React.FC = () => {
                     <div className="sheet-handle"></div>
                     <div>
                     <h3 className="results-title">
-                        Rutas Sugeridas 
-                        {searchResults.results.length > 0 && 
-                        <span className="results-count">{searchResults.results.length}</span>
+                        Opciones de Viaje
+                        {searchResults.journeys.length > 0 && 
+                        <span className="results-count">{searchResults.journeys.length}</span>
                         }
                     </h3>
-                    <p className="results-subtitle">Radio máximo: {searchResults.radius_reached}m</p>
+                    <p className="results-subtitle">Radio de búsqueda: {searchResults.search_meta.radius_reached}m</p>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); handleCloseResults(); }} className="close-results-btn">
                     <X size={20} />
@@ -188,13 +187,13 @@ const RoutingDashboardMap: React.FC = () => {
                 </div>
                 
                 <div className="results-body">
-                    {searchResults.results.length > 0 ? (
-                    searchResults.results.map((route) => (
+                    {searchResults.journeys.length > 0 ? (
+                    searchResults.journeys.map((journey) => (
                         <RouteResultCard 
-                        key={route.id}
-                        route={route}
-                        isSelected={selectedRoute?.id === route.id}
-                        onClick={() => setSelectedRoute(route)}
+                        key={journey.id}
+                        route={journey as any} // Temporary hack until we rewrite RouteResultCard
+                        isSelected={selectedJourney?.id === journey.id}
+                        onClick={() => setSelectedJourney(journey)}
                         />
                     ))
                     ) : (

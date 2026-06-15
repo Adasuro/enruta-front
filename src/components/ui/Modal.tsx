@@ -64,7 +64,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            className="fixed inset-0 bg-primary-900/30 flex items-center justify-center z-[1000] backdrop-blur-[2px]" 
+            className="fixed inset-0 bg-gray-900/40 flex items-center justify-center z-[1000] backdrop-blur-sm" 
             initial="hidden"
             animate="visible"
             exit="hidden"
@@ -73,7 +73,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
           >
             <motion.div 
               ref={ref}
-              className={`bg-white rounded-2xl w-[90%] flex flex-col shadow-xl max-h-[90vh] outline-none ${sizes[size]}`}
+              className={`bg-white rounded-2xl w-[90%] flex flex-col shadow-2xl max-h-[90vh] outline-none ${sizes[size]}`}
               variants={modalVariants}
               role="dialog"
               aria-modal="true"

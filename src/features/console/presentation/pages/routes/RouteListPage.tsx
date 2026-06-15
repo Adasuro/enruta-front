@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Filter, Loader2, Route as RouteIcon } from 'lucide-react';
-import { Input, Button, Card } from '../../../../../components/ui';
+import { Input, Button, Card, ConfirmModal } from '../../../../../components/ui';
 import { RouteCard } from './components/RouteCard';
 import { RouteDetailModal } from './components/RouteDetailModal';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -15,6 +15,7 @@ export const RouteListPage: React.FC = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [routeToDelete, setRouteToDelete] = useState<string | null>(null);
 
   // Fetch routes for this business
   const { data: routes = [], isLoading } = useQuery({
@@ -33,6 +34,7 @@ export const RouteListPage: React.FC = () => {
       const response = await api.patch(`/routes/${id}/status`, { status: newStatus });
       return response.data.data;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSuccess: (data: any) => {
       success(`La ruta está ahora ${data?.status === 'active' ? 'en servicio' : 'en pausa'}.`, 'Estado Actualizado');
       queryClient.invalidateQueries({ queryKey: ['routes', activeBusinessId] });
@@ -42,15 +44,37 @@ export const RouteListPage: React.FC = () => {
     }
   });
 
+  const deleteRouteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return api.delete(`/routes/${id}`);
+    },
+    onSuccess: () => {
+      success('La ruta ha sido eliminada correctamente.', 'Ruta Eliminada');
+      queryClient.invalidateQueries({ queryKey: ['routes', activeBusinessId] });
+      setRouteToDelete(null);
+    },
+    onError: () => {
+      error('No se pudo eliminar la ruta.', 'Error Operativo');
+    }
+  });
+
   const handleStatusToggle = (id: string, currentStatus: string) => {
     updateStatusMutation.mutate({ id, status: currentStatus });
   };
 
+  const handleDeleteRoute = () => {
+    if (routeToDelete) {
+      deleteRouteMutation.mutate(routeToDelete);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredRoutes = routes.filter((r: any) => 
     r.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.visual_code?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectedRoute = routes.find((r: any) => r.id === selectedRouteId) || null;
 
   const { data: availableFleets = [] } = useQuery({
@@ -104,12 +128,14 @@ export const RouteListPage: React.FC = () => {
         </Card>
       ) : (
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(280px,1fr))] items-start">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {filteredRoutes.map((route: any) => (
             <RouteCard 
               key={route.id} 
               route={route} 
               onManage={(id: string) => setSelectedRouteId(id)}
               onStatusToggle={handleStatusToggle}
+              onDelete={setRouteToDelete}
             />
           ))}
         </div>
@@ -121,6 +147,17 @@ export const RouteListPage: React.FC = () => {
         onClose={() => setSelectedRouteId(null)} 
         route={selectedRoute} 
         availableFleets={availableFleets}
+      />
+
+      <ConfirmModal 
+        isOpen={!!routeToDelete}
+        title="Eliminar Ruta"
+        message="¿Está seguro de eliminar esta ruta? Perderá el historial de recolección de tarifas y los caminos trazados. Esta acción no se puede deshacer."
+        confirmText="Sí, eliminar ruta"
+        isDestructive
+        isLoading={deleteRouteMutation.isPending}
+        onConfirm={handleDeleteRoute}
+        onCancel={() => setRouteToDelete(null)}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Filter, Loader2, Bus } from 'lucide-react';
-import { Input, Button, Card } from '../../../../../components/ui';
+import { Input, Button, Card, ConfirmModal } from '../../../../../components/ui';
 import { VehicleCard } from '../routes/components/VehicleCard';
 import { VehicleModal } from '../routes/components/VehicleModal';
 import { FleetManager } from './components/FleetManager';
@@ -19,10 +19,15 @@ export const FleetListPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'vehicles' | 'fleets'>('vehicles');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [vehicleToDelete, setVehicleToDelete] = useState<string | null>(null);
 
   // Escuchar evento personalizado del Layout
   useEffect(() => {
-    const handleOpenModal = () => setIsAddModalOpen(true);
+    const handleOpenModal = () => {
+      setEditingVehicle(null);
+      setIsAddModalOpen(true);
+    };
     window.addEventListener('open-add-vehicle-modal', handleOpenModal);
     return () => window.removeEventListener('open-add-vehicle-modal', handleOpenModal);
   }, []);
@@ -73,6 +78,19 @@ export const FleetListPage: React.FC = () => {
     }
   });
 
+  const deleteVehicleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return vehicleService.deleteVehicle(id);
+    },
+    onSuccess: () => {
+      success('Vehículo dado de baja y eliminado.', 'Operación Exitosa');
+      queryClient.invalidateQueries({ queryKey: ['vehicles', activeBusinessId] });
+    },
+    onError: () => {
+      error('No se pudo dar de baja el vehículo.', 'Error');
+    }
+  });
+
   const handleFleetChange = (vehicleId: string, newFleetId: string) => {
     updateFleetMutation.mutate({ id: vehicleId, fleetId: newFleetId || null });
   };
@@ -81,6 +99,20 @@ export const FleetListPage: React.FC = () => {
     updateStatusMutation.mutate({ id: vehicleId, status: currentStatus === 'active' ? 'maintenance' : 'active' });
   };
 
+  const handleDeleteVehicle = () => {
+    if (vehicleToDelete) {
+      deleteVehicleMutation.mutate(vehicleToDelete, {
+        onSuccess: () => setVehicleToDelete(null)
+      });
+    }
+  };
+
+  const handleEditVehicle = (vehicle: Vehicle) => {
+    setEditingVehicle(vehicle);
+    setIsAddModalOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredVehicles = vehicles.filter((v: any) => 
     v.plate_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -153,8 +185,11 @@ export const FleetListPage: React.FC = () => {
                   availableFleets={availableFleets}
                   isUpdatingFleet={updateFleetMutation.isPending && updateFleetMutation.variables?.id === vehicle.id}
                   isUpdatingStatus={updateStatusMutation.isPending && updateStatusMutation.variables?.id === vehicle.id}
+                  isDeleting={deleteVehicleMutation.isPending && deleteVehicleMutation.variables === vehicle.id}
                   onFleetAssign={handleFleetChange}
                   onStatusToggle={handleStatusToggle}
+                  onEdit={handleEditVehicle}
+                  onDelete={setVehicleToDelete}
                 />
               ))}
             </div>
@@ -167,10 +202,25 @@ export const FleetListPage: React.FC = () => {
       {activeBusinessId && (
         <VehicleModal 
           isOpen={isAddModalOpen} 
-          onClose={() => setIsAddModalOpen(false)} 
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setEditingVehicle(null);
+          }} 
           businessId={activeBusinessId} 
+          editingVehicle={editingVehicle}
         />
       )}
+
+      <ConfirmModal 
+        isOpen={!!vehicleToDelete}
+        title="Dar de baja unidad"
+        message="¿Está seguro de eliminar y dar de baja este vehículo permanentemente? Esta acción borrará las fotos y registros asociados."
+        confirmText="Sí, dar de baja"
+        isDestructive
+        isLoading={deleteVehicleMutation.isPending}
+        onConfirm={handleDeleteVehicle}
+        onCancel={() => setVehicleToDelete(null)}
+      />
     </div>
   );
 };

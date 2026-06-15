@@ -22,14 +22,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const baseClasses = 'inline-flex items-center justify-center gap-2 border-[1.5px] border-transparent rounded-lg font-semibold cursor-pointer whitespace-nowrap outline-none transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500';
+    const baseClasses = 'inline-flex items-center justify-center gap-2 border-[1.5px] border-transparent rounded-lg font-bold cursor-pointer whitespace-nowrap outline-none transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500';
     
     const variants = {
-      primary: 'bg-primary-500 text-white shadow-sm hover:bg-primary-600 hover:shadow-md',
-      secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-      outline: 'bg-transparent border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-500',
-      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100',
-      danger: 'bg-danger-500 text-white shadow-sm hover:bg-danger-600 hover:shadow-md'
+      primary: 'bg-primary-500 text-white shadow-sm hover:bg-primary-600 hover:shadow-md border-primary-500 hover:border-primary-600',
+      secondary: 'bg-secondary-500 text-white shadow-sm hover:bg-secondary-600 hover:shadow-md border-secondary-500 hover:border-secondary-600',
+      outline: 'bg-transparent border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-500 hover:bg-primary-50/30',
+      ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+      danger: 'bg-danger-500 text-white shadow-sm hover:bg-danger-600 hover:shadow-md border-danger-500 hover:border-danger-600'
     };
     
     const sizes = {

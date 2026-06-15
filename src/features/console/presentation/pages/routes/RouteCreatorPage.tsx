@@ -183,7 +183,7 @@ export const RouteCreatorPage: React.FC = () => {
           />
           
           <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-sm font-bold text-gray-700 tracking-wider">Color del Circuito</label>
+            <label className="text-sm font-bold text-gray-700 tracking-wider">Color Principal del Letrero (Fondo)</label>
             <div className="flex gap-3 items-center">
               <div className="relative w-12 h-12 rounded-md overflow-hidden border-[1.5px] border-gray-200 shrink-0">
                   <input 

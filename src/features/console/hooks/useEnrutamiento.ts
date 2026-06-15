@@ -77,7 +77,7 @@ export const useEnrutamiento = () => {
       
       try {
         const result = await routeService.searchRoutes(origin, destination, r);
-        if (result.results.length > 0) {
+        if (result.journeys && result.journeys.length > 0) {
           setSearchResults(result);
           setIsSearching(false);
           return;
@@ -90,7 +90,10 @@ export const useEnrutamiento = () => {
     }
     
     setIsSearching(false);
-    setSearchResults({ radius_reached: 300, results: [] }); // Empty results instead of null
+    setSearchResults({ 
+      search_meta: { origin, destination, radius_reached: 300 }, 
+      journeys: [] 
+    });
     setRadiusMsg('No se encontraron rutas cercanas.');
   }, [origin, destination]);
 
