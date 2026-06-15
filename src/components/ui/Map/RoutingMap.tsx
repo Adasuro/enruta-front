@@ -1,10 +1,10 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl, type MapRef } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent } from 'react-map-gl/maplibre';
-import { MapPin, CircleDot, ArrowUpCircle, LogOut, Crosshair, Target, Flag, Bus } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, CircleDot, ArrowUpCircle, LogOut, Crosshair, Target, Flag, Bus, Lock, Unlock } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { type Journey } from '../../../features/console/services/routeService';
+import { VehicleGalleryModal } from '../../domain/VehicleGalleryModal';
 
 interface Point {
   lat: number;
@@ -19,6 +19,8 @@ interface RoutingMapProps {
   onLocateMe: () => void;
   isLocating?: boolean;
   selectedRoute: Journey | null;
+  isLocked?: boolean;
+  onToggleLock?: () => void;
 }
 
 const OriginMarker = () => (
@@ -58,12 +60,12 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
   onMarkerDrag,
   onLocateMe,
   isLocating = false,
-  selectedRoute
+  selectedRoute,
+  isLocked = false,
+  onToggleLock
 }) => {
   const mapRef = useRef<MapRef>(null);
-  const [showVehicleOverlay, setShowVehicleOverlay] = useState(false);
-
-  const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const initialViewState = {
     longitude: -75.2048,
@@ -119,6 +121,7 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
   };
 
   const handleMapClick = (event: MapLayerMouseEvent) => {
+    if (isLocked) return;
     const { lng, lat } = event.lngLat;
     onMapClick({ lat, lng });
   };
@@ -152,7 +155,8 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
     };
   }, [selectedRoute]);
 
-  const transitColor = selectedRoute?.steps.find(s => s.type === 'TRANSIT')?.route_info?.color_primary || 'var(--brand-primary)';
+  const transitStep = selectedRoute?.steps.find(s => s.type === 'TRANSIT');
+  const transitColor = transitStep?.route_info?.color_primary || 'var(--brand-primary)';
   
   const boardingCoords = useMemo(() => {
     const transit = selectedRoute?.steps.find(s => s.type === 'TRANSIT');
@@ -209,62 +213,47 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
           {/* Bus Reference Overlay Trigger */}
           {selectedRoute && (
             <button 
-                onClick={() => setShowVehicleOverlay(!showVehicleOverlay)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-xl transition-all duration-300 ${
-                    showVehicleOverlay ? 'scale-110 ring-4 ring-white/50' : 'hover:scale-105 active:scale-95'
-                }`}
+                onClick={() => setIsGalleryOpen(true)}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-95`}
                 style={{ backgroundColor: transitColor }}
                 title="Ver referencias del bus"
             >
                 <Bus size={24} />
             </button>
           )}
+
+          {/* Map Lock Toggle */}
+          {onToggleLock && (origin || destination) && (
+              <button 
+                  onClick={onToggleLock}
+                  className={`w-12 h-12 rounded-2xl bg-white border-2 flex items-center justify-center shadow-xl transition-all duration-300 ${
+                      isLocked ? 'border-warning-500 text-warning-500' : 'border-gray-100 text-gray-400 hover:text-gray-900'
+                  }`}
+                  title={isLocked ? "Mapa bloqueado (Seguimiento)" : "Mapa libre"}
+              >
+                  {isLocked ? <Lock size={22} /> : <Unlock size={22} />}
+              </button>
+          )}
       </div>
 
-      {/* Vehicle Photos Overlay */}
-      <AnimatePresence>
-        {showVehicleOverlay && selectedRoute && (
-            <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="absolute top-4 right-20 z-50 flex flex-col gap-3 pointer-events-none"
-            >
-                {selectedRoute.steps.find(s => s.type === 'TRANSIT')?.vehicle_references?.map((veh, i) => (
-                    <motion.div 
-                        key={i}
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        className="bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-2xl border-2 border-white pointer-events-auto flex flex-col gap-2"
-                    >
-                        {veh.photo_sign_url && (
-                            <div className="w-48 h-32 rounded-xl overflow-hidden relative shadow-inner">
-                                <img src={`${STORAGE_URL}/${veh.photo_sign_url}`} alt="Letrero" className="w-full h-full object-cover" />
-                                <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded-lg backdrop-blur-sm">
-                                    <span className="text-[0.625rem] font-black text-white uppercase tracking-tighter">Letrero Actual</span>
-                                </div>
-                            </div>
-                        )}
-                        {veh.photo_front_url && (
-                            <div className="w-48 h-32 rounded-xl overflow-hidden relative shadow-inner">
-                                <img src={`${STORAGE_URL}/${veh.photo_front_url}`} alt="Unidad" className="w-full h-full object-cover" />
-                                <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded-lg backdrop-blur-sm">
-                                    <span className="text-[0.625rem] font-black text-white uppercase tracking-tighter">Vista Frontal</span>
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                ))}
-            </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Vehicle Gallery Modal */}
+      {transitStep && (
+          <VehicleGalleryModal 
+            isOpen={isGalleryOpen}
+            onClose={() => setIsGalleryOpen(false)}
+            routeName={transitStep.route_info?.name || null}
+            visualCode={transitStep.route_info?.visual_code || '---'}
+            color={transitColor}
+            references={transitStep.vehicle_references || []}
+          />
+      )}
 
       <Map
         ref={mapRef}
         initialViewState={initialViewState}
         mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
         onClick={handleMapClick}
-        cursor="crosshair"
+        cursor={isLocked ? "default" : "crosshair"}
         style={{ width: '100%', height: '100%' }}
       >
         <NavigationControl position="bottom-right" />
@@ -277,9 +266,9 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
               type="line"
               layout={{ 'line-join': 'round', 'line-cap': 'round' }}
               paint={{
-                'line-color': '#3B82F6', // Azul claro para caminar
+                'line-color': '#3B82F6', 
                 'line-width': 4,
-                'line-dasharray': [1, 2], // Punteado
+                'line-dasharray': [1, 2], 
                 'line-opacity': 0.8
               }}
             />
@@ -336,7 +325,7 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
             longitude={origin.lng}
             latitude={origin.lat}
             anchor="center"
-            draggable
+            draggable={!isLocked}
             onDragEnd={(e) => onMarkerDrag('origin', { lat: e.lngLat.lat, lng: e.lngLat.lng })}
           >
             <OriginMarker />
@@ -348,7 +337,7 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
             longitude={destination.lng}
             latitude={destination.lat}
             anchor="center"
-            draggable
+            draggable={!isLocked}
             onDragEnd={(e) => onMarkerDrag('destination', { lat: e.lngLat.lat, lng: e.lngLat.lng })}
           >
             <DestinationMarker />

@@ -1,7 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { routeService, type Point, type RoutingResult } from '../services/routeService';
 import { useNotification } from '../../../hooks/useNotification';
+
+export interface SavedSearch {
+    id: string;
+    origin: Point;
+    originName: string;
+    destination: Point;
+    destinationName: string;
+    timestamp: number;
+}
 
 export const useEnrutamiento = () => {
   const [origin, setOrigin] = useState<Point | null>(null);
@@ -13,7 +22,41 @@ export const useEnrutamiento = () => {
   const [radiusMsg, setRadiusMsg] = useState('');
   const [isLocating, setIsLocating] = useState(false);
   
+  // New States: Locking and History
+  const [isLocked, setIsLocked] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<SavedSearch[]>([]);
+
   const { info, warning, error: notifyError } = useNotification();
+
+  // Load history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('enruta_history');
+    if (saved) {
+        try {
+            setRecentSearches(JSON.parse(saved));
+        } catch {
+            localStorage.removeItem('enruta_history');
+        }
+    }
+  }, []);
+
+  const saveToHistory = useCallback((origin: Point, originName: string, dest: Point, destName: string) => {
+    const newSearch: SavedSearch = {
+        id: crypto.randomUUID(),
+        origin,
+        originName,
+        destination: dest,
+        destinationName: destName,
+        timestamp: Date.now()
+    };
+    
+    setRecentSearches(prev => {
+        const filtered = prev.filter(s => s.originName !== originName || s.destinationName !== destName);
+        const updated = [newSearch, ...filtered].slice(0, 5); // Keep last 5
+        localStorage.setItem('enruta_history', JSON.stringify(updated));
+        return updated;
+    });
+  }, []);
 
   // Reverse Geocoding
   const fetchAddress = async (lat: number, lng: number) => {
@@ -35,6 +78,11 @@ export const useEnrutamiento = () => {
   }, []);
 
   const useCurrentLocation = useCallback(async () => {
+    if (isLocked) {
+        info('Desbloquea el mapa para cambiar tu ubicación.', 'Mapa Bloqueado');
+        return;
+    }
+
     if (!navigator.geolocation) {
         notifyError('Tu navegador no soporta geolocalización.');
         return;
@@ -70,7 +118,7 @@ export const useEnrutamiento = () => {
         },
         options
     );
-  }, [updateOriginFromCoords, info, warning, notifyError]);
+  }, [updateOriginFromCoords, info, warning, notifyError, isLocked]);
 
   const clearLocation = useCallback((type: 'origin' | 'destination') => {
     if (type === 'origin') {
@@ -81,6 +129,16 @@ export const useEnrutamiento = () => {
       setDestinationName('');
     }
     setSearchResults(null);
+    setIsLocked(false);
+  }, []);
+
+  const loadFromHistory = useCallback((saved: SavedSearch) => {
+      setOrigin(saved.origin);
+      setOriginName(saved.originName);
+      setDestination(saved.destination);
+      setDestinationName(saved.destinationName);
+      setSearchResults(null);
+      setIsLocked(false);
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -98,6 +156,9 @@ export const useEnrutamiento = () => {
         if (result.journeys && result.journeys.length > 0) {
           setSearchResults(result);
           setIsSearching(false);
+          // Auto-lock when results found to allow "Following"
+          setIsLocked(true);
+          saveToHistory(origin, originName, destination, destinationName);
           return;
         }
       } catch {
@@ -112,7 +173,7 @@ export const useEnrutamiento = () => {
       journeys: [] 
     });
     setRadiusMsg('No se encontraron rutas cercanas.');
-  }, [origin, destination]);
+  }, [origin, destination, originName, destinationName, saveToHistory]);
 
   return {
     origin,
@@ -131,6 +192,10 @@ export const useEnrutamiento = () => {
     fetchAddress,
     useCurrentLocation,
     clearLocation,
-    isLocating
+    isLocating,
+    isLocked,
+    setIsLocked,
+    recentSearches,
+    loadFromHistory
   };
 };

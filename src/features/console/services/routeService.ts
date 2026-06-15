@@ -11,6 +11,7 @@ export interface VehicleReference {
   type: string;
   photo_front_url?: string;
   photo_sign_url?: string;
+  photo_side_url?: string;
 }
 
 export interface JourneyStep {

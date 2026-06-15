@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useEnrutamiento } from '../../hooks/useEnrutamiento';
 import { RoutingMap } from '../../../../components/ui/Map';
 import { RouteResultCard, EnrutandoOverlay, RoutingSearchCard } from '../../../../components/domain';
-import { Frown, Info, X, Bus, Route as RouteIcon, TrendingUp, Users } from 'lucide-react';
+import { Frown, Info, X, Bus, Route as RouteIcon, TrendingUp, Users, History, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { Card } from '../../../../components/ui';
 
@@ -12,12 +12,10 @@ export const ConsoleDashboardPage: React.FC<{ forceSearchMode?: boolean }> = ({ 
   const { user, activeBusinessId } = useAuth();
   const activeBusiness = user?.businesses?.find(b => b.id === activeBusinessId);
 
-  // If the user has a transport business, show the B2B Dashboard, unless search is forced
   if (!forceSearchMode && activeBusiness && activeBusiness.type === 'transport') {
     return <B2BTransportDashboard businessName={activeBusiness.name} />;
   }
 
-  // Otherwise, show the Map (B2C / Super Admin / Agencies / Forced Search)
   return <RoutingDashboardMap />;
 };
 
@@ -90,7 +88,8 @@ const RoutingDashboardMap: React.FC = () => {
     origin, setOrigin, originName, setOriginName,
     destination, setDestination, destinationName, setDestinationName,
     isSearching, searchResults, setSearchResults, radiusMsg, handleSearch: originalHandleSearch, fetchAddress,
-    useCurrentLocation, clearLocation, isLocating
+    useCurrentLocation, clearLocation, isLocating,
+    isLocked, setIsLocked, recentSearches, loadFromHistory
   } = useEnrutamiento();
 
   const [selectedJourney, setSelectedJourney] = useState<any>(null);
@@ -109,6 +108,8 @@ const RoutingDashboardMap: React.FC = () => {
   };
 
   const handleMapClick = async (p: {lat: number, lng: number}) => {
+    if (isLocked) return;
+
     if (!origin) {
       setOrigin(p);
       setOriginName('Cargando...');
@@ -123,6 +124,8 @@ const RoutingDashboardMap: React.FC = () => {
   };
 
   const handleMarkerDrag = async (type: 'origin' | 'destination', p: {lat: number, lng: number}) => {
+    if (isLocked) return;
+
     if (type === 'origin') {
       setOrigin(p);
       const name = await fetchAddress(p.lat, p.lng);
@@ -138,6 +141,7 @@ const RoutingDashboardMap: React.FC = () => {
     setSearchResults(null);
     setSelectedJourney(null);
     setSheetState('closed');
+    setIsLocked(false);
   };
 
   const toggleSheet = () => {
@@ -161,6 +165,31 @@ const RoutingDashboardMap: React.FC = () => {
           isLocating={isLocating}
           canSearch={!!origin && !!destination}
         />
+
+        {/* Recent Searches Desktop */}
+        {!searchResults && recentSearches.length > 0 && (
+            <div className="recent-searches-card hidden md:block">
+                <div className="flex items-center gap-2 mb-3 text-gray-400">
+                    <History size={16} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Búsquedas Recientes</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                    {recentSearches.map((s) => (
+                        <button 
+                            key={s.id} 
+                            onClick={() => loadFromHistory(s)}
+                            className="text-left p-3 rounded-xl bg-white border border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group flex items-center justify-between"
+                        >
+                            <div className="flex flex-col gap-0.5 overflow-hidden">
+                                <p className="text-[0.625rem] font-bold text-success-600 truncate">{s.originName}</p>
+                                <p className="text-[0.625rem] font-bold text-danger-600 truncate">{s.destinationName}</p>
+                            </div>
+                            <ArrowRight size={14} className="text-gray-300 group-hover:text-primary-500 shrink-0" />
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
       </div>
 
       <div className="main-content">
@@ -173,6 +202,8 @@ const RoutingDashboardMap: React.FC = () => {
             onLocateMe={useCurrentLocation}
             isLocating={isLocating}
             selectedRoute={selectedJourney}
+            isLocked={isLocked}
+            onToggleLock={() => setIsLocked(!isLocked)}
           />
         </div>
 
@@ -245,6 +276,18 @@ const RoutingDashboardMap: React.FC = () => {
             left: 1.25rem; 
             z-index: 10; 
             pointer-events: auto; 
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 380px;
+          }
+          .recent-searches-card {
+              background: white/80;
+              backdrop-blur: md;
+              border-radius: var(--radius-2xl);
+              padding: 1.25rem;
+              border: 1px solid var(--color-gray-200);
+              box-shadow: var(--shadow-xl);
           }
           .main-content { 
             display: flex; 
@@ -327,6 +370,7 @@ const RoutingDashboardMap: React.FC = () => {
               border-radius: 10px;
             }
             .results-header { padding-top: 1.75rem; }
+            .hidden { display: none; }
           }
         `}</style>
       </div>
