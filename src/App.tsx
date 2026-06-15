@@ -4,6 +4,7 @@ import { RegisterPage } from './features/auth/presentation/pages/RegisterPage';
 import { ConsoleLayout } from './components/layout/ConsoleLayout';
 import { RouteCreatorPage } from './features/console/presentation/pages/routes/RouteCreatorPage';
 import { RouteListPage } from './features/console/presentation/pages/routes/RouteListPage';
+import { FareManagerPage } from './features/console/presentation/pages/routes/FareManagerPage';
 import { RoutesLayout } from './features/console/presentation/pages/routes/layout/RoutesLayout';
 import { FleetLayout } from './features/console/presentation/pages/fleet/layout/FleetLayout';
 import { FleetListPage } from './features/console/presentation/pages/fleet/FleetListPage';
@@ -36,7 +37,7 @@ function App() {
             <Route index element={<Navigate to="list" replace />} />
             <Route path="list" element={<RouteListPage />} />
             <Route path="map" element={<div className="p-8 text-center text-gray-500 font-medium">Próximamente: Mapa Global de Cobertura</div>} />
-            <Route path="fares" element={<div className="p-8 text-center text-gray-500 font-medium">Próximamente: Reglas de Tarifa Dinámicas</div>} />
+            <Route path="fares" element={<FareManagerPage />} />
           </Route>
 
           {/* Fuera del layout de rutas para tener pantalla completa */}

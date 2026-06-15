@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, AlertCircle, MapPin, Palette } from 'lucide-react';
+import { Save, AlertCircle, MapPin } from 'lucide-react';
 import bearing from '@turf/bearing';
 import { point as turfPoint } from '@turf/helpers';
 import { RouteCreatorMap } from '../../../../../components/ui/Map/RouteCreatorMap';
@@ -24,7 +24,8 @@ interface StopMetadata {
 export const RouteCreatorPage: React.FC = () => {
   const [visualCode, setVisualCode] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [color, setColor] = useState('#0b62a0');
+  const [colorPrimary, setColorPrimary] = useState('#0b62a0');
+  const [colorSecondary, setColorSecondary] = useState('#FFFFFF');
   const [points, setPoints] = useState<Point[]>([]);
   const [densePoints, setDensePoints] = useState<Point[]>([]);
   const [stopsMeta, setStopsMeta] = useState<StopMetadata[]>([]);
@@ -95,26 +96,56 @@ export const RouteCreatorPage: React.FC = () => {
     
     const activeBusiness = user?.businesses?.find(b => b.id === activeBusinessId) || user?.businesses?.[0];
     
+    // Create a map of sequence to street name from stopsMeta for efficiency
+    const streetNamesMap = new Map(stopsMeta.map(m => [m.index + 1, m.streetName]));
+
+    // Helper function to find the closest point index in finalPoints
+    const findClosestPointIndex = (target: Point, pathPoints: Point[]) => {
+      let minDistance = Infinity;
+      let closestIndex = 0;
+      
+      pathPoints.forEach((p, idx) => {
+        // Simple Euclidean distance for matching (sufficient for small distances)
+        const d = Math.pow(p.lat - target.lat, 2) + Math.pow(p.lng - target.lng, 2);
+        if (d < minDistance) {
+          minDistance = d;
+          closestIndex = idx;
+        }
+      });
+      
+      return closestIndex;
+    };
+
     try {
       const payload = {
         business_id: activeBusiness?.id || '', 
         city_id: activeBusiness?.city_id || user?.city_id || '',
         visual_code: visualCode,
         display_name: displayName,
-        color_primary: color,
+        color_primary: colorPrimary,
+        color_secondary: colorSecondary,
         path: {
           direction: 1, 
           points: finalPoints.map((p, index) => ({
             lat: p.lat,
             lng: p.lng,
-            sequence: index + 1
+            sequence: index + 1,
+            snapped_street: streetNamesMap.get(index + 1) || null
           }))
         },
-        stops: stopsMeta.filter(m => m.isTerminal).map(m => ({
-          sequence_order: m.index + 1,
-          name: m.streetName,
-          is_terminal: true
-        }))
+        stops: stopsMeta.filter(m => m.isTerminal).map(m => {
+          const originalPoint = points[m.index];
+          const closestIndex = findClosestPointIndex(originalPoint, finalPoints);
+          
+          return {
+            sequence_order: closestIndex + 1, // Correct sequence relative to the final path
+            name: m.streetName,
+            snapped_street: m.streetName,
+            is_terminal: true,
+            lat: originalPoint.lat,
+            lng: originalPoint.lng
+          };
+        })
       };
 
       await api.post('/routes', payload);
@@ -168,13 +199,14 @@ export const RouteCreatorPage: React.FC = () => {
 
         <div className="flex flex-col gap-4 shrink-0">
           <Input 
-            label="Código / Letra Visual" 
-            placeholder="Ej. A, 15, W" 
+            label="Código Visual" 
+            placeholder="Ej. A, 15" 
             value={visualCode}
             onChange={(e) => setVisualCode(e.target.value)}
             maxLength={10}
             required
           />
+          
           <Input 
             label="Nombre Descriptivo" 
             placeholder="Ej. Terminal - Centro - Retorno" 
@@ -182,28 +214,58 @@ export const RouteCreatorPage: React.FC = () => {
             onChange={(e) => setDisplayName(e.target.value)}
           />
           
-          <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-sm font-bold text-gray-700 tracking-wider">Color Principal del Letrero (Fondo)</label>
-            <div className="flex gap-3 items-center">
-              <div className="relative w-12 h-12 rounded-md overflow-hidden border-[1.5px] border-gray-200 shrink-0">
-                  <input 
-                    type="color" 
-                    value={color} 
-                    onChange={(e) => setColor(e.target.value)}
-                    className="absolute -inset-2.5 w-[200%] h-[200%] cursor-pointer border-none"
-                  />
-              </div>
-              <div className="flex-1">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider">Fondo Letrero</label>
+              <div className="flex gap-2 items-center">
+                <div className="relative w-10 h-10 rounded-lg overflow-hidden border-[1.5px] border-gray-100 shrink-0">
+                    <input 
+                      type="color" 
+                      value={colorPrimary} 
+                      onChange={(e) => setColorPrimary(e.target.value)}
+                      className="absolute -inset-2.5 w-[200%] h-[200%] cursor-pointer border-none"
+                    />
+                </div>
                 <Input 
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  leftIcon={<Palette size={16} />}
-                  className="font-mono uppercase"
+                  value={colorPrimary}
+                  onChange={(e) => setColorPrimary(e.target.value)}
+                  className="font-mono uppercase text-xs h-10"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[0.6875rem] font-bold text-gray-400 uppercase tracking-wider">Texto Letrero</label>
+              <div className="flex gap-2 items-center">
+                <div className="relative w-10 h-10 rounded-lg overflow-hidden border-[1.5px] border-gray-100 shrink-0">
+                    <input 
+                      type="color" 
+                      value={colorSecondary} 
+                      onChange={(e) => setColorSecondary(e.target.value)}
+                      className="absolute -inset-2.5 w-[200%] h-[200%] cursor-pointer border-none"
+                    />
+                </div>
+                <Input 
+                  value={colorSecondary}
+                  onChange={(e) => setColorSecondary(e.target.value)}
+                  className="font-mono uppercase text-xs h-10"
                 />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Vista previa del letrero */}
+        <div className="mt-4 p-4 rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
+            <span className="text-[0.625rem] font-bold text-gray-300 uppercase tracking-widest">Vista Previa Identidad</span>
+            <div 
+              className="w-20 h-14 rounded-lg shadow-sm flex items-center justify-center text-2xl font-black transition-colors duration-200"
+              style={{ backgroundColor: colorPrimary, color: colorSecondary }}
+            >
+              {visualCode || '?'}
+            </div>
+        </div>
+
 
         {/* Panel de Puntos de Control */}
         {points.length > 0 && (
@@ -212,10 +274,10 @@ export const RouteCreatorPage: React.FC = () => {
             
             <div className="flex flex-col gap-2">
               {stopsMeta.map(meta => (
-                <Card key={meta.index} padding="sm" bordered={true} className="border-l-4" style={{ borderColor: meta.isTerminal ? color : 'var(--color-gray-100)', borderLeftColor: meta.isTerminal ? color : 'var(--color-gray-200)' }}>
+                <Card key={meta.index} padding="sm" bordered={true} className="border-l-4" style={{ borderColor: meta.isTerminal ? colorPrimary : 'var(--color-gray-100)', borderLeftColor: meta.isTerminal ? colorPrimary : 'var(--color-gray-200)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <MapPin size={16} style={{ color: meta.isTerminal ? color : 'var(--color-gray-300)' }} />
+                      <MapPin size={16} style={{ color: meta.isTerminal ? colorPrimary : 'var(--color-gray-300)' }} />
                       <div className="flex flex-col min-w-0">
                         <span className="text-[0.8125rem] font-bold overflow-hidden text-ellipsis whitespace-nowrap">
                           {meta.streetName}
@@ -232,9 +294,9 @@ export const RouteCreatorPage: React.FC = () => {
                         checked={meta.isTerminal} 
                         onChange={() => toggleTerminal(meta.index)}
                         className="w-4 h-4"
-                        style={{ accentColor: color }}
+                        style={{ accentColor: colorPrimary }}
                       />
-                      <span className="text-xs font-semibold" style={{ color: meta.isTerminal ? color : 'var(--color-gray-500)' }}>Term.</span>
+                      <span className="text-xs font-semibold" style={{ color: meta.isTerminal ? colorPrimary : 'var(--color-gray-500)' }}>Term.</span>
                     </label>
                   </div>
                 </Card>
@@ -284,7 +346,7 @@ export const RouteCreatorPage: React.FC = () => {
           points={points} 
           onPointsChange={setPoints}
           onRouteCalculated={setDensePoints}
-          routeColor={color}
+          routeColor={colorPrimary}
         />
       </div>
     </div>
