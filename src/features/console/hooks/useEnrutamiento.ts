@@ -10,6 +10,7 @@ export const useEnrutamiento = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<RoutingResult | null>(null);
   const [radiusMsg, setRadiusMsg] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
 
   // Reverse Geocoding
   const fetchAddress = async (lat: number, lng: number) => {
@@ -21,37 +22,44 @@ export const useEnrutamiento = () => {
     }
   };
 
+  const updateOriginFromCoords = useCallback(async (lat: number, lng: number) => {
+    const p = { lat, lng };
+    setOrigin(p);
+    setOriginName('Buscando dirección...');
+    const name = await fetchAddress(lat, lng);
+    setOriginName(name);
+    return p;
+  }, []);
+
   // Initial Geolocation
     useEffect(() => {
-      if (navigator.geolocation) {
+      if (navigator.geolocation && !origin) {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
-            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            setOrigin(p);
-            const name = await fetchAddress(p.lat, p.lng);
-            setOriginName(name);
+            updateOriginFromCoords(pos.coords.latitude, pos.coords.longitude);
           },
-          () => console.warn("Geolocation error"),
+          () => console.warn("Geolocation initial error"),
           { enableHighAccuracy: true }
         );
       }
-    }, []);
+    }, [origin, updateOriginFromCoords]);
 
     const useCurrentLocation = useCallback(() => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            setOrigin(p);
-            setOriginName('Mi ubicación actual');
-            const name = await fetchAddress(p.lat, p.lng);
-            setOriginName(name);
-          },
-          () => console.warn("Geolocation error"),
-          { enableHighAccuracy: true }
-        );
-      }
-    }, []);
+      if (!navigator.geolocation) return;
+      
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          await updateOriginFromCoords(pos.coords.latitude, pos.coords.longitude);
+          setIsLocating(false);
+        },
+        (err) => {
+          console.warn("Geolocation click error", err);
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }, [updateOriginFromCoords]);
 
   const clearLocation = useCallback((type: 'origin' | 'destination') => {
     if (type === 'origin') {
@@ -113,7 +121,8 @@ export const useEnrutamiento = () => {
     handleSearch,
     fetchAddress,
     useCurrentLocation,
-    clearLocation
+    clearLocation,
+    isLocating
   };
 };
 

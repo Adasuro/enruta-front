@@ -90,7 +90,7 @@ const RoutingDashboardMap: React.FC = () => {
     origin, setOrigin, originName, setOriginName,
     destination, setDestination, destinationName, setDestinationName,
     isSearching, searchResults, setSearchResults, radiusMsg, handleSearch: originalHandleSearch, fetchAddress,
-    useCurrentLocation, clearLocation
+    useCurrentLocation, clearLocation, isLocating
   } = useEnrutamiento();
 
   const [selectedJourney, setSelectedJourney] = useState<any>(null);
@@ -101,17 +101,31 @@ const RoutingDashboardMap: React.FC = () => {
     setSheetState('peek');
   };
 
+  const handleJourneySelect = (journey: any) => {
+    setSelectedJourney(journey);
+    if (window.innerWidth < 768) {
+      setSheetState('full');
+    }
+  };
+
+  const handleGeolocate = async (p: {lat: number, lng: number}) => {
+    setOrigin(p);
+    const name = await fetchAddress(p.lat, p.lng);
+    setOriginName(name);
+  };
+
   const handleMapClick = async (p: {lat: number, lng: number}) => {
+    // Si no hay origen, el primer clic establece el origen
     if (!origin) {
       setOrigin(p);
+      setOriginName('Cargando...');
       const name = await fetchAddress(p.lat, p.lng);
       setOriginName(name);
-    } else if (!destination) {
+    } 
+    // Si ya hay origen, cualquier clic adicional establece/actualiza el destino
+    else {
       setDestination(p);
-      const name = await fetchAddress(p.lat, p.lng);
-      setDestinationName(name);
-    } else {
-      setDestination(p);
+      setDestinationName('Cargando...');
       const name = await fetchAddress(p.lat, p.lng);
       setDestinationName(name);
     }
@@ -153,6 +167,7 @@ const RoutingDashboardMap: React.FC = () => {
           onClear={() => clearLocation('origin')}
           onUseCurrentLocation={useCurrentLocation}
           isSearching={isSearching}
+          isLocating={isLocating}
           canSearch={!!origin && !!destination}
         />
       </div>
@@ -164,6 +179,7 @@ const RoutingDashboardMap: React.FC = () => {
             destination={destination} 
             onMapClick={handleMapClick}
             onMarkerDrag={handleMarkerDrag}
+            onGeolocate={handleGeolocate}
             selectedRoute={selectedJourney}
           />
         </div>
@@ -172,14 +188,17 @@ const RoutingDashboardMap: React.FC = () => {
             <div className={`results-panel ${sheetState}`}>
                 <div className="results-header" onClick={toggleSheet}>
                     <div className="sheet-handle"></div>
-                    <div>
+                    <div className="flex flex-col gap-0.5">
                     <h3 className="results-title">
                         Opciones de Viaje
                         {searchResults.journeys.length > 0 && 
                         <span className="results-count">{searchResults.journeys.length}</span>
                         }
                     </h3>
-                    <p className="results-subtitle">Radio de búsqueda: {searchResults.search_meta.radius_reached}m</p>
+                    <p className="results-subtitle flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success-500"></span>
+                        Radio: {searchResults.search_meta.radius_reached}m
+                    </p>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); handleCloseResults(); }} className="close-results-btn">
                     <X size={20} />
@@ -191,9 +210,9 @@ const RoutingDashboardMap: React.FC = () => {
                     searchResults.journeys.map((journey) => (
                         <RouteResultCard 
                         key={journey.id}
-                        route={journey as any} // Temporary hack until we rewrite RouteResultCard
+                        route={journey as any}
                         isSelected={selectedJourney?.id === journey.id}
-                        onClick={() => setSelectedJourney(journey)}
+                        onClick={() => handleJourneySelect(journey)}
                         />
                     ))
                     ) : (
@@ -217,7 +236,7 @@ const RoutingDashboardMap: React.FC = () => {
 
         <style>{`
           :root {
-            --sheet-peek-height: 150px;
+            --sheet-peek-height: 180px;
             --sheet-full-height: 85vh;
           }
           .enrutamiento-container { 
@@ -250,7 +269,7 @@ const RoutingDashboardMap: React.FC = () => {
           }
           
           .results-panel {
-            width: 380px;
+            width: 400px;
             background: var(--color-white);
             border-left: 1px solid var(--color-gray-200);
             display: flex;
@@ -267,11 +286,12 @@ const RoutingDashboardMap: React.FC = () => {
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
+            position: relative;
           }
           .sheet-handle { display: none; }
-          .results-title { font-size: 1.125rem; font-weight: 800; color: var(--color-gray-900); display: flex; align-items: center; gap: 8px; margin:0; }
-          .results-count { font-size: 0.75rem; background: var(--color-gray-100); color: var(--brand-primary); padding: 2px 8px; border-radius: 12px; font-weight: 800; }
-          .results-subtitle { font-size: 0.75rem; color: var(--color-gray-500); margin: 2px 0 0; font-weight: 600; }
+          .results-title { font-size: 1.125rem; font-weight: 900; color: var(--color-gray-900); display: flex; align-items: center; gap: 8px; margin:0; }
+          .results-count { font-size: 0.75rem; background: var(--brand-primary); color: white; padding: 2px 8px; border-radius: 12px; font-weight: 900; }
+          .results-subtitle { font-size: 0.75rem; color: var(--color-gray-500); margin: 2px 0 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.025em; }
           
           .close-results-btn { background: var(--color-gray-50); border: none; padding: 6px; border-radius: 50%; cursor: pointer; color: var(--color-gray-400); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
           .close-results-btn:hover { background: var(--color-gray-100); color: var(--color-gray-900); }
@@ -287,7 +307,7 @@ const RoutingDashboardMap: React.FC = () => {
           .recommendation-box strong { color: var(--brand-primary); font-weight: 800; }
 
           @media (max-width: 767px) {
-            .floating-search-panel { top: 0 !important; left: 0 !important; right: 0 !important; width: auto !important; }
+            .floating-search-panel { top: 0 !important; left: 0 !important; right: 0 !important; width: auto !important; padding: 0.75rem; }
             .results-panel {
               position: absolute;
               bottom: 0;
@@ -314,6 +334,7 @@ const RoutingDashboardMap: React.FC = () => {
               background-color: var(--color-gray-300);
               border-radius: 10px;
             }
+            .results-header { padding-top: 1.75rem; }
           }
         `}</style>
       </div>

@@ -11,6 +11,7 @@ interface RoutingSearchCardProps {
   onClear: () => void;
   onUseCurrentLocation: () => void;
   isSearching: boolean;
+  isLocating: boolean;
   canSearch: boolean;
 }
 
@@ -23,6 +24,7 @@ export const RoutingSearchCard: React.FC<RoutingSearchCardProps> = ({
   onClear,
   onUseCurrentLocation,
   isSearching,
+  isLocating,
   canSearch,
 }) => {
   return (
@@ -46,7 +48,11 @@ export const RoutingSearchCard: React.FC<RoutingSearchCardProps> = ({
                     onChange={(e) => onOriginChange(e.target.value)}
                     className="max-md:min-h-[40px] max-md:bg-gray-100 max-md:border-transparent"
                     rightIcon={
-                        <button onClick={onUseCurrentLocation} className="bg-transparent border-none p-1 cursor-pointer flex items-center text-primary-500">
+                        <button 
+                          onClick={onUseCurrentLocation} 
+                          disabled={isLocating}
+                          className={`bg-transparent border-none p-1 cursor-pointer flex items-center transition-colors ${isLocating ? 'text-gray-300 animate-pulse' : 'text-primary-500 hover:text-primary-600'}`}
+                        >
                             <LocateFixed size={18} />
                         </button>
                     }
