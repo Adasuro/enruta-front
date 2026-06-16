@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import App from './App.tsx';
 import { NotificationProvider } from './contexts/NotificationContext.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
+import { UIProvider } from './contexts/UIContext.tsx';
 
 /* Estilos Maestros - CFA Standard */
 import './styles/theme.css';
@@ -18,7 +19,9 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NotificationProvider>
-            <App />
+            <UIProvider>
+              <App />
+            </UIProvider>
           </NotificationProvider>
         </AuthProvider>
         <ReactQueryDevtools initialIsOpen={false} />
