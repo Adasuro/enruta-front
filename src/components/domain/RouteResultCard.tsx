@@ -3,6 +3,7 @@ import { Bus, ArrowRight, Navigation2, MapPin, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { type Journey } from '../../features/console/services/routeService';
 import { MultimodalJourney } from './MultimodalJourney';
+import { RouteVisualIdentity } from './RouteVisualIdentity';
 
 interface RouteResultCardProps {
   route: Journey;
@@ -30,16 +31,12 @@ export const RouteResultCard: React.FC<RouteResultCardProps> = ({
     >
       <div className="p-4 flex gap-4 items-center">
         {/* Identidad Visual */}
-        <div 
-          className="w-14 h-14 rounded-xl text-white font-black flex items-center justify-center text-xl shrink-0 shadow-lg" 
-          style={{ 
-            backgroundColor: routeInfo?.color_primary || '#CBD5E1', 
-            color: routeInfo?.color_secondary || '#FFFFFF',
-            textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-          }}
-        >
-          {routeInfo?.visual_code || '?'}
-        </div>
+        <RouteVisualIdentity 
+            code={routeInfo?.visual_code || '?'} 
+            color={routeInfo?.color_primary || '#CBD5E1'} 
+            secondaryColor={routeInfo?.color_secondary || '#FFFFFF'}
+            size="lg"
+        />
 
         {/* Info Principal */}
         <div className="flex flex-col gap-1 flex-1 min-w-0">

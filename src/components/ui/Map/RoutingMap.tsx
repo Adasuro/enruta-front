@@ -1,10 +1,11 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import Map, { Marker, Source, Layer, NavigationControl, type MapRef } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent } from 'react-map-gl/maplibre';
-import { MapPin, CircleDot, ArrowUpCircle, LogOut, Crosshair, Target, Flag, Bus, Lock, Unlock } from 'lucide-react';
+import { MapPin, CircleDot, ArrowUpCircle, LogOut, Crosshair, Target, Flag, Lock, Unlock } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { type Journey } from '../../../features/console/services/routeService';
 import { VehicleGalleryModal } from '../../domain/VehicleGalleryModal';
+import { RouteVisualIdentity } from '../../domain/RouteVisualIdentity';
 
 interface Point {
   lat: number;
@@ -214,11 +215,14 @@ export const RoutingMap: React.FC<RoutingMapProps> = ({
           {selectedRoute && (
             <button 
                 onClick={() => setIsGalleryOpen(true)}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-95`}
-                style={{ backgroundColor: transitColor }}
+                className="hover:scale-105 active:scale-95 transition-all bg-transparent border-none p-0 cursor-pointer"
                 title="Ver referencias del bus"
             >
-                <Bus size={24} />
+                <RouteVisualIdentity 
+                    code={transitStep?.route_info?.visual_code || '?'} 
+                    color={transitColor} 
+                    size="lg"
+                />
             </button>
           )}
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { GlobalHUD } from './GlobalHUD';
 import { useAuth } from '../../contexts/AuthContext';
 import { OnboardingPage } from '../../features/console/presentation/pages/OnboardingPage';
 
@@ -18,7 +19,8 @@ export const ConsoleLayout: React.FC = () => {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar />
-      <main className="flex-1 pl-[4.5rem] transition-[padding-left] duration-250 ease h-full relative max-md:pl-0 max-md:pb-[4.5rem] max-md:pt-16">
+      <GlobalHUD />
+      <main className="flex-1 pl-[4.5rem] transition-[padding-left] duration-250 ease h-full relative max-md:pl-0">
         {/* Aquí renderizan las sub-rutas (dashboard, rutas, perfil, etc.) */}
         <div className="h-full flex flex-col overflow-y-auto overflow-x-hidden">
             <Outlet />
